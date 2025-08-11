@@ -40,30 +40,33 @@ router.get('/', optionalAuthMiddleware, async (req, res) => {
 router.post('/edit', adminAuthMiddleware('edit conversions'), async (req, res) => {
 	const validConversion = {
 		type: 'object',
+		maxProperties: 6, // Prevent parameter injection attacks
 		required: ['sourceId', 'destinationId', 'bidirectional', 'slope', 'intercept'],
 		properties: {
 			sourceId: {
-				type: 'number',
+				type: 'integer',
 				// Do not allow negatives for now
-				minimum: 0
+				minimum: 1 
 			},
 			destinationId: {
-				type: 'number',
+				type: 'integer',
 				// Do not allow negatives for now
-				minimum: 0
+				minimum: 1
 			},
 			bidirectional: {
 				type: 'boolean'
 			},
 			slope: {
-				type: 'float'
+				type: 'number'
 			},
 			intercept: {
-				type: 'float'
+				type: 'number'
 			},
 			note: {
 				oneOf: [
-					{ type: 'string' },
+					{ type: 'string',
+						maxLength: 1000
+					 },
 					{ type: 'null' }
 				]
 			}
