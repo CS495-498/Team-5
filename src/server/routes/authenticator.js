@@ -20,7 +20,8 @@ const escapeHtml = require('escape-html');
 authMiddleware = (req, res, next) => {
 	const token = req.headers.token || req.body.token || req.query.token;
 	const validParams = {
-		type: 'string'
+		type: 'string',
+		maxLength: 2000
 	};
 	if (!validate(token, validParams).valid) {
 		res.status(403).json({ success: false, message: 'No token provided or JSON was invalid.' });
@@ -51,6 +52,7 @@ authMiddleware = (req, res, next) => {
 function credentialsRequestValidationMiddleware(req, res, next) {
 	const validParams = {
 		type: 'object',
+		maxProperties: 2,
 		required: ['username', 'password'],
 		properties: {
 			username: {
@@ -60,7 +62,8 @@ function credentialsRequestValidationMiddleware(req, res, next) {
 			},
 			password: {
 				type: 'string',
-				minLength: 8
+				minLength: 8,
+				maxLength: 1000
 			}
 		}
 	};
@@ -184,7 +187,8 @@ optionalAuthMiddleware = (req, res, next) => {
 
 	const token = req.headers.token || req.body.token || req.query.token;
 	const validParams = {
-		type: 'string'
+		type: 'string',
+		maxLength: 2000
 	};
 
 	// If there is no token, there can be no valid token.
