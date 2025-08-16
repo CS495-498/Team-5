@@ -22,18 +22,18 @@ const router = express.Router();
 router.post('/', credentialsRequestValidationMiddleware, async (req, res) => {
 	const validParams = {
 		type: 'object',
-		maxProperties: 2,
+		additionalProperties: false,
 		required: ['username', 'password'],
 		properties: {
 			username: {
 				type: 'string',
-				minLength: 3,
+				minLength: 5,
 				maxLength: 254
 			},
 			password: {
 				type: 'string',
 				minLength: 8,
-				maxLength: 128
+				maxLength: 1000
 			}
 		}
 	};
