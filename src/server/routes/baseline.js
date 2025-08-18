@@ -7,6 +7,8 @@ const { getConnection } = require('../db');
 const express = require('express');
 const Baseline = require('../models/Baseline');
 const log = require('../log');
+const validate = require('jsonschema').validate;
+const adminAuthenticator = require('./authenticator').adminAuthMiddleware;
 const router = express.Router();
 router.get('/', async (req, res) => {
 	const conn = getConnection();
@@ -17,7 +19,47 @@ router.get('/', async (req, res) => {
 		log(`Error while getting all baselines: ${err}`, 'error');
 	}
 });
-router.post('/new', async (req, res) => {
+router.post('/new', adminAuthenticator('create baselines'), async (req, res) => {
+	const validParams = {
+		type: 'object',
+		additionalProperties: false,
+		required: ['meterID', 'applyStart', 'applyEnd', 'calcStart', 'calcEnd'],
+		properties: {
+			meterID: {
+				type: 'integer',
+				minimum: 1,
+				maximum: 2147483647
+			},
+			applyStart: {
+				type: 'string',
+				maxLength: 100
+			},
+			applyEnd: {
+				type: 'string',
+				maxLength: 100
+			},
+			calcStart: {
+				type: 'string',
+				maxLength: 100
+			},
+			calcEnd: {
+				type: 'string',
+				maxLength: 100
+			},
+			note: {
+				oneOf: [
+					{ type: 'string', maxLength: 1000 },
+					{ type: 'null' }
+				]
+			}
+		}
+	};
+	
+	if (!validate(req.body, validParams).valid) {
+		res.sendStatus(400);
+		return;
+	}
+	
 	const conn = getConnection();
 	try {
 		const baseline = new Baseline(
