@@ -214,7 +214,7 @@ function validateMeterRadarReadingsParams(params) {
 		properties: {
 			meter_ids: {
 				type: 'string',
-				pattern: '^\\d+(?:,\\d+)*$' // Matches 1 or 1,2 or 1,2,34 (for example)
+				pattern: '^\\d+(?:,\\d+)*$'
 			}
 		}
 	};
@@ -270,7 +270,7 @@ function validateGroupRadarReadingsParams(params) {
 		properties: {
 			group_ids: {
 				type: 'string',
-				pattern: '^\\d+(?:,\\d+)*$' // Matches 1 or 1,2 or 1,2,34 (for example)
+				pattern: '^\\d+(?:,\\d+)*$'
 			}
 		}
 	};

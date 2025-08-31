@@ -43,7 +43,7 @@ mocha.describe('Authenticator Parameter Validation', () => {
                 basePayload: baseCredentials,
                 required: true,
                 minLength: 8,
-                maxLength: 1000 // Security: prevent DoS via huge passwords
+                maxLength: 1000
             });
         });
 
@@ -105,7 +105,7 @@ mocha.describe('Authenticator Parameter Validation', () => {
     mocha.describe('Token Validation', () => {
         // Test through an endpoint that requires authentication
         // Most endpoints use authMiddleware, so we'll test through a protected route
-        const PROTECTED_ENDPOINT = '/api/users'; // Requires admin auth
+        const PROTECTED_ENDPOINT = '/api/users';
 
         mocha.it('should validate token length limits', async () => {
             // Test extremely long token - auth middleware returns 403 for validation failure
@@ -119,7 +119,7 @@ mocha.describe('Authenticator Parameter Validation', () => {
         mocha.it('should reject non-string tokens in headers', async () => {
             const res = await chai.request(app)
                 .get(PROTECTED_ENDPOINT)
-                .set('token', 12345); // Non-string token - auth middleware returns 401 for JWT verification failure
+                .set('token', 12345);
             
             expect(res).to.have.status(401);
         });
@@ -127,7 +127,7 @@ mocha.describe('Authenticator Parameter Validation', () => {
         mocha.it('should reject non-string tokens in body', async () => {
             const res = await chai.request(app)
                 .post(PROTECTED_ENDPOINT)
-                .send({ token: 12345 }); // Non-string token - returns 404 since POST /api/users doesn't exist
+                .send({ token: 12345 });
             
             expect(res).to.have.status(404);
         });
@@ -135,13 +135,13 @@ mocha.describe('Authenticator Parameter Validation', () => {
         mocha.it('should reject non-string tokens in query', async () => {
             const res = await chai.request(app)
                 .get(PROTECTED_ENDPOINT)
-                .query({ token: 12345 }); // Non-string token - auth middleware returns 401 for JWT verification failure
+                .query({ token: 12345 });
             
             expect(res).to.have.status(401);
         });
 
         mocha.it('should handle extremely long tokens (DoS prevention)', async () => {
-            const hugeToken = 'Bearer ' + 'x'.repeat(2100); // Exceeds 2000 char limit
+            const hugeToken = 'Bearer ' + 'x'.repeat(2100);
             
             const res = await chai.request(app)
                 .get(PROTECTED_ENDPOINT)

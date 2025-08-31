@@ -27,7 +27,7 @@ mocha.describe('Meters Parameter Validation', () => {
         });
 
         mocha.it('should handle extremely long meter IDs', async () => {
-            const longId = '1'.repeat(25); // Exceeds maxLength: 20
+            const longId = '1'.repeat(25);
             const res = await chai.request(app)
                 .get(`/api/meters/${longId}`);
             
@@ -64,7 +64,8 @@ mocha.describe('Meters Parameter Validation', () => {
             url: 'http://example.com/meter',
             enabled: true,
             displayable: true,
-            meterType: 'MAMAC', // TODO: Use actual enum value
+            // TODO: Use actual enum value
+            meterType: 'MAMAC',
             timeZone: 'America/Los_Angeles',
             note: 'Test meter for validation',
             area: 100.5,
@@ -83,14 +84,16 @@ mocha.describe('Meters Parameter Validation', () => {
             previousEnd: '2022-12-31T23:59:59Z',
             unitId: 1,
             defaultGraphicUnit: 1,
-            areaUnit: 'square meters', // TODO: Use actual enum value
+            // TODO: Use actual enum value
+            areaUnit: 'square meters',
             readingFrequency: '15 minutes',
             minVal: 0,
             maxVal: 10000,
             minDate: '2023-01-01',
             maxDate: '2023-12-31',
             maxError: 5,
-            disableChecks: 'none' // TODO: Use actual enum value
+            // TODO: Use actual enum value
+            disableChecks: 'none'
         };
 
         mocha.it('should reject unauthenticated requests', async () => {
@@ -144,7 +147,7 @@ mocha.describe('Meters Parameter Validation', () => {
                     invalidValue: 'x'.repeat(test.maxLength + 1),
                     endpoint: EDIT_ENDPOINT,
                     basePayload: baseMeterData,
-                    expectedStatus: 403 // Admin auth will block before validation
+                    expectedStatus: 403
                 });
             }
         });
@@ -189,7 +192,8 @@ mocha.describe('Meters Parameter Validation', () => {
             // Test missing required GPS fields
             await testInvalidField({
                 field: 'gps',
-                invalidValue: { latitude: 45 }, // Missing longitude
+                // Missing longitude
+                invalidValue: { latitude: 45 },
                 endpoint: EDIT_ENDPOINT,
                 basePayload: baseMeterData,
                 expectedStatus: 403
@@ -412,10 +416,10 @@ mocha.describe('Meters Parameter Validation', () => {
         mocha.it('should handle type validation errors', async () => {
             // Test wrong types for various fields
             const typeTests = [
-                { field: 'enabled', invalidValue: 'true' }, // String instead of boolean
-                { field: 'area', invalidValue: 'large' }, // String instead of number
-                { field: 'id', invalidValue: 'meter1' }, // String instead of integer
-                { field: 'unitId', invalidValue: 1.5 } // Float instead of integer
+                { field: 'enabled', invalidValue: 'true' }, 
+                { field: 'area', invalidValue: 'large' },
+                { field: 'id', invalidValue: 'meter1' },
+                { field: 'unitId', invalidValue: 1.5 }
             ];
 
             for (const test of typeTests) {

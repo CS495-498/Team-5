@@ -85,7 +85,8 @@ mocha.describe('Login Parameter Validation', () => {
                 invalidValue: 'user\x00@example.com',
                 endpoint: LOGIN_ENDPOINT,
                 basePayload: baseCredentials,
-                expectedStatus: 500 // TODO: Verify this is correct expected behavior
+                // TODO: Verify this is correct expected behavior
+                expectedStatus: 500
             });
         });
     });

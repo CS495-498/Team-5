@@ -39,7 +39,7 @@ mocha.describe('Users Parameter Validation', () => {
             const malformedTokens = [
                 'malformed.jwt.token',
                 'not.a.jwt',
-                '', // Empty token
+                '',
                 'null',
                 'undefined'
             ];
@@ -72,7 +72,7 @@ mocha.describe('Users Parameter Validation', () => {
         });
 
         mocha.it('should handle extremely long user IDs', async () => {
-            const longId = '1'.repeat(25); // Exceeds maxLength: 20
+            const longId = '1'.repeat(25);
             const res = await chai.request(app)
                 .get(`/api/users/${longId}`);
             
@@ -94,7 +94,8 @@ mocha.describe('Users Parameter Validation', () => {
         const baseUserData = {
             username: 'newuser@example.com',
             password: 'newpassword123',
-            role: 'ADMIN', // TODO: Use actual enum value from User.role
+            // TODO: Use actual enum value from User.role
+            role: 'ADMIN',
             note: 'Test user creation'
         };
 
@@ -102,7 +103,8 @@ mocha.describe('Users Parameter Validation', () => {
             // Admin auth middleware returns 403 before validation, so test manually
             await testInvalidField({
                 field: 'username',
-                invalidValue: 'x'.repeat(255), // Too long
+                // Too long
+                invalidValue: 'x'.repeat(255),
                 endpoint: CREATE_ENDPOINT,
                 basePayload: baseUserData,
                 expectedStatus: 403
@@ -113,7 +115,8 @@ mocha.describe('Users Parameter Validation', () => {
             // Admin auth middleware returns 403 before validation
             await testInvalidField({
                 field: 'password',
-                invalidValue: 'x'.repeat(1001), // Too long
+                // Too long
+                invalidValue: 'x'.repeat(1001),
                 endpoint: CREATE_ENDPOINT,
                 basePayload: baseUserData,
                 expectedStatus: 403
@@ -124,7 +127,8 @@ mocha.describe('Users Parameter Validation', () => {
             // Admin auth middleware returns 403 before validation
             await testInvalidField({
                 field: 'note',
-                invalidValue: 'x'.repeat(1001), // Too long
+                // Too long
+                invalidValue: 'x'.repeat(1001),
                 endpoint: CREATE_ENDPOINT,
                 basePayload: baseUserData,
                 expectedStatus: 403
@@ -156,7 +160,7 @@ mocha.describe('Users Parameter Validation', () => {
             const res = await chai.request(app)
                 .post(CREATE_ENDPOINT)
                 .send(payloadWithExtra);
-            expect([400, 403]).to.include(res.status); // 400 for validation, 401 for auth
+            expect([400, 403]).to.include(res.status);
         });
 
         mocha.it('should handle malicious username inputs', async () => {
@@ -173,7 +177,7 @@ mocha.describe('Users Parameter Validation', () => {
                     invalidValue: maliciousInput,
                     endpoint: CREATE_ENDPOINT,
                     basePayload: baseUserData,
-                    expectedStatus: 403 // Admin auth blocks before validation
+                    expectedStatus: 403
                 });
             }
         });
@@ -200,9 +204,10 @@ mocha.describe('Users Parameter Validation', () => {
             user: {
                 id: 1,
                 username: 'edituser@example.com',
-                role: 'ADMIN', // TODO: Use actual enum value
+                role: 'ADMIN',
+                // TODO: Use actual enum value from User.role
                 note: 'Edited user',
-                password: 'newpassword123' // Optional
+                password: 'newpassword123'
             }
         };
 
@@ -224,7 +229,7 @@ mocha.describe('Users Parameter Validation', () => {
             // Admin auth middleware returns 403 before validation
             await testInvalidField({
                 field: 'id',
-                invalidValue: -1, // Invalid ID
+                invalidValue: -1,
                 endpoint: EDIT_ENDPOINT,
                 basePayload: { user: { ...baseEditData.user } },
                 expectedStatus: 403
@@ -235,14 +240,14 @@ mocha.describe('Users Parameter Validation', () => {
             const testPayload = {
                 user: {
                     ...baseEditData.user,
-                    username: 'test' // Will be replaced by validateString
+                    username: 'test'
                 }
             };
 
             // Admin auth middleware returns 403 before validation
             await testInvalidField({
                 field: 'username',
-                invalidValue: 'x'.repeat(255), // Too long
+                invalidValue: 'x'.repeat(255),
                 endpoint: EDIT_ENDPOINT,
                 basePayload: testPayload,
                 expectedStatus: 403
@@ -270,21 +275,21 @@ mocha.describe('Users Parameter Validation', () => {
             const res = await chai.request(app)
                 .post(EDIT_ENDPOINT)
                 .send(payloadWithoutPassword);
-            expect([400, 403]).to.include(res.status); // Should pass validation, fail on auth
+            expect([400, 403]).to.include(res.status);
         });
 
         mocha.it('should validate note field in edit', async () => {
             const testPayload = {
                 user: {
                     ...baseEditData.user,
-                    note: 'test' // Will be replaced by validateString
+                    note: 'test'
                 }
             };
 
             // Admin auth middleware returns 403 before validation
             await testInvalidField({
                 field: 'note',
-                invalidValue: 'x'.repeat(1001), // Too long
+                invalidValue: 'x'.repeat(1001),
                 endpoint: EDIT_ENDPOINT,
                 basePayload: testPayload,
                 expectedStatus: 403
@@ -332,7 +337,7 @@ mocha.describe('Users Parameter Validation', () => {
             // Admin auth middleware returns 403 before validation
             await testInvalidField({
                 field: 'username',
-                invalidValue: 'x'.repeat(255), // Too long
+                invalidValue: 'x'.repeat(255),
                 endpoint: DELETE_ENDPOINT,
                 basePayload: baseDeleteData,
                 expectedStatus: 403
@@ -367,7 +372,7 @@ mocha.describe('Users Parameter Validation', () => {
                     invalidValue: maliciousInput,
                     endpoint: DELETE_ENDPOINT,
                     basePayload: baseDeleteData,
-                    expectedStatus: 403 // Admin auth blocks before validation
+                    expectedStatus: 403
                 });
             }
         });

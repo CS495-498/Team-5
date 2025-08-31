@@ -87,7 +87,8 @@ mocha.describe('Response Utility Functions', () => {
             success(mockRes, undefined);
             
             expect(mockRes.statusCode).to.equal(200);
-            expect(mockRes.sentData).to.equal(''); // success() defaults undefined to ''
+            // success() defaults undefined to ''
+            expect(mockRes.sentData).to.equal('');
         });
     });
 
@@ -196,12 +197,14 @@ mocha.describe('Response Utility Functions', () => {
     mocha.describe('Function signatures', () => {
         mocha.it('should export success function', () => {
             expect(success).to.be.a('function');
-            expect(success.length).to.equal(1); // Only res parameter required, comment is optional with default
+            // Only res parameter required, comment is optional with default
+            expect(success.length).to.equal(1);
         });
 
         mocha.it('should export failure function', () => {
             expect(failure).to.be.a('function');
-            expect(failure.length).to.equal(1); // Only res parameter required, code and comment have defaults
+            // Only res parameter required, code and comment have defaults
+            expect(failure.length).to.equal(1);
         });
 
         mocha.it('should have correct default parameters', () => {

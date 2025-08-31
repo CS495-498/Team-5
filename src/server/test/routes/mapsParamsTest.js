@@ -87,7 +87,8 @@ mocha.describe('Maps Parameter Validation', () => {
                     invalidValue: undefined,
                     endpoint: CREATE_ENDPOINT,
                     basePayload: baseMapData,
-                    expectedStatus: 403 // Will fail auth before validation
+                    // Will fail auth before validation
+                    expectedStatus: 403
                 });
             }
         });
@@ -102,26 +103,27 @@ mocha.describe('Maps Parameter Validation', () => {
                 .post(CREATE_ENDPOINT)
                 .send(payloadWithExtra);
             
-            expect(res.status).to.equal(403); // Will fail auth before validation
+            // Will fail auth before validation
+            expect(res.status).to.equal(403);
         });
 
         mocha.it('should validate string field lengths (DoS prevention)', async () => {
             const oversizedTests = [
                 {
                     field: 'name',
-                    value: 'x'.repeat(150) // Exceeds maxLength 100
+                    value: 'x'.repeat(150)
                 },
                 {
                     field: 'filename', 
-                    value: 'x'.repeat(600) // Exceeds maxLength 500
+                    value: 'x'.repeat(600)
                 },
                 {
                     field: 'modifiedDate',
-                    value: 'x'.repeat(150) // Exceeds maxLength 100
+                    value: 'x'.repeat(150)
                 },
                 {
                     field: 'mapSource',
-                    value: 'x'.repeat(1100) // Exceeds maxLength 1000
+                    value: 'x'.repeat(1100)
                 }
             ];
 
@@ -131,7 +133,7 @@ mocha.describe('Maps Parameter Validation', () => {
                     invalidValue: test.value,
                     endpoint: CREATE_ENDPOINT,
                     basePayload: baseMapData,
-                    expectedStatus: 403 // Will fail auth before validation
+                    expectedStatus: 403
                 });
             }
         });
@@ -175,7 +177,7 @@ mocha.describe('Maps Parameter Validation', () => {
                     .post(CREATE_ENDPOINT)
                     .send(payload);
                 
-                expect(res.status).to.equal(403); // Will fail auth before validation
+                expect(res.status).to.equal(403);
             }
         });
 
@@ -192,7 +194,7 @@ mocha.describe('Maps Parameter Validation', () => {
                     .post(CREATE_ENDPOINT)
                     .send(payload);
                 
-                expect(res.status).to.equal(403); // Will fail auth before validation
+                expect(res.status).to.equal(403);
             }
         });
 
@@ -209,7 +211,7 @@ mocha.describe('Maps Parameter Validation', () => {
                     .post(CREATE_ENDPOINT)
                     .send(payload);
                 
-                expect(res.status).to.equal(403); // Will fail auth before validation
+                expect(res.status).to.equal(403);
             }
         });
     });
@@ -247,7 +249,7 @@ mocha.describe('Maps Parameter Validation', () => {
                     invalidValue: undefined,
                     endpoint: EDIT_ENDPOINT,
                     basePayload: baseEditData,
-                    expectedStatus: 403 // Will fail auth before validation
+                    expectedStatus: 403
                 });
             }
         });
@@ -262,7 +264,7 @@ mocha.describe('Maps Parameter Validation', () => {
                 .post(EDIT_ENDPOINT)
                 .send(payloadWithExtra);
             
-            expect(res.status).to.equal(403); // Will fail auth before validation
+            expect(res.status).to.equal(403);
         });
 
         mocha.it('should validate ID bounds', async () => {
@@ -274,7 +276,7 @@ mocha.describe('Maps Parameter Validation', () => {
                     invalidValue: id,
                     endpoint: EDIT_ENDPOINT,
                     basePayload: baseEditData,
-                    expectedStatus: 403 // Will fail auth before validation
+                    expectedStatus: 403
                 });
             }
         });
@@ -288,7 +290,7 @@ mocha.describe('Maps Parameter Validation', () => {
                     invalidValue: invalid,
                     endpoint: EDIT_ENDPOINT,
                     basePayload: baseEditData,
-                    expectedStatus: 403 // Will fail auth before validation
+                    expectedStatus: 403
                 });
             }
         });
@@ -316,7 +318,7 @@ mocha.describe('Maps Parameter Validation', () => {
                 invalidValue: undefined,
                 endpoint: DELETE_ENDPOINT,
                 basePayload: baseDeleteData,
-                expectedStatus: 403 // Will fail auth before validation
+                expectedStatus: 403
             });
         });
 
@@ -329,8 +331,8 @@ mocha.describe('Maps Parameter Validation', () => {
             const res = await chai.request(app)
                 .post(DELETE_ENDPOINT)
                 .send(payloadWithExtra);
-            
-            expect(res.status).to.equal(403); // Will fail auth before validation
+
+            expect(res.status).to.equal(403);
         });
 
         mocha.it('should validate ID bounds', async () => {
@@ -342,7 +344,7 @@ mocha.describe('Maps Parameter Validation', () => {
                     invalidValue: id,
                     endpoint: DELETE_ENDPOINT,
                     basePayload: baseDeleteData,
-                    expectedStatus: 403 // Will fail auth before validation
+                    expectedStatus: 403
                 });
             }
         });
@@ -373,8 +375,8 @@ mocha.describe('Maps Parameter Validation', () => {
                     const res = await chai.request(app)
                         .post(endpoint)
                         .send(maliciousPayload);
-                    
-                    expect(res.status).to.equal(403); // Will fail auth before validation
+
+                    expect(res.status).to.equal(403);
                 }
             }
         });
@@ -403,8 +405,8 @@ mocha.describe('Maps Parameter Validation', () => {
                 const res = await chai.request(app)
                     .post(test.endpoint)
                     .send(test.payload);
-                
-                expect(res.status).to.equal(403); // Will fail auth before validation
+
+                expect(res.status).to.equal(403);
             }
         });
 
@@ -436,8 +438,8 @@ mocha.describe('Maps Parameter Validation', () => {
                 const res = await chai.request(app)
                     .post('/api/maps/create')
                     .send(payload);
-                
-                expect(res.status).to.equal(403); // Will fail auth before validation
+
+                expect(res.status).to.equal(403);
             }
         });
     });
@@ -455,7 +457,7 @@ mocha.describe('Maps Parameter Validation', () => {
             // Test invalid token format
             res = await chai.request(app)
                 .post('/api/maps/create')
-                .set('token', 12345); // Non-string token
+                .set('token', 12345);
             
             expect([401, 403]).to.include(res.status);
         });

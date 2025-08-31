@@ -29,7 +29,7 @@ mocha.describe('Groups Parameter Validation', () => {
         });
 
         mocha.it('should handle extremely long group IDs', async () => {
-            const longId = '1'.repeat(25); // Exceeds maxLength: 20
+            const longId = '1'.repeat(25);
             const res = await chai.request(app)
                 .get(`/api/groups/deep/groups/${longId}`);
             
@@ -117,7 +117,8 @@ mocha.describe('Groups Parameter Validation', () => {
             note: 'Test group for validation',
             area: 100.5,
             defaultGraphicUnit: 1,
-            areaUnit: 'square meters' // TODO: Use actual enum value
+             // TODO: Use actual enum value
+            areaUnit: 'square meters'
         };
 
         mocha.it('should reject unauthenticated requests', async () => {
@@ -149,7 +150,7 @@ mocha.describe('Groups Parameter Validation', () => {
             // Test name field length
             await testInvalidField({
                 field: 'name',
-                invalidValue: 'x'.repeat(101), // Exceeds maxLength: 100
+                invalidValue: 'x'.repeat(101),
                 endpoint: CREATE_ENDPOINT,
                 basePayload: baseGroupData,
                 expectedStatus: 403
@@ -158,7 +159,7 @@ mocha.describe('Groups Parameter Validation', () => {
             // Test note field length  
             await testInvalidField({
                 field: 'note',
-                invalidValue: 'x'.repeat(1001), // Exceeds maxLength: 1000
+                invalidValue: 'x'.repeat(1001),
                 endpoint: CREATE_ENDPOINT,
                 basePayload: baseGroupData,
                 expectedStatus: 403
@@ -167,7 +168,7 @@ mocha.describe('Groups Parameter Validation', () => {
             // Test areaUnit field length
             await testInvalidField({
                 field: 'areaUnit',
-                invalidValue: 'x'.repeat(51), // Exceeds maxLength: 50
+                invalidValue: 'x'.repeat(51),
                 endpoint: CREATE_ENDPOINT,
                 basePayload: baseGroupData,
                 expectedStatus: 403
@@ -196,7 +197,7 @@ mocha.describe('Groups Parameter Validation', () => {
             // Test missing required GPS fields
             await testInvalidField({
                 field: 'gps',
-                invalidValue: { latitude: 45 }, // Missing longitude
+                invalidValue: { latitude: 45 },
                 endpoint: CREATE_ENDPOINT,
                 basePayload: baseGroupData,
                 expectedStatus: 403
@@ -441,7 +442,8 @@ mocha.describe('Groups Parameter Validation', () => {
                 invalidValue: 'x'.repeat(101),
                 endpoint: EDIT_ENDPOINT,
                 basePayload: baseGroupData,
-                expectedStatus: 404 // TODO: Should be 403 for auth or 400 for validation
+                // TODO: Should be 403 for auth or 400 for validation
+                expectedStatus: 404
             });
 
             // TODO: Same routing issue - PUT endpoint behavior needs review
@@ -450,7 +452,8 @@ mocha.describe('Groups Parameter Validation', () => {
                 invalidValue: -5,
                 endpoint: EDIT_ENDPOINT,
                 basePayload: baseGroupData,
-                expectedStatus: 404 // TODO: Should be 403 for auth or 400 for validation
+                 // TODO: Should be 403 for auth or 400 for validation
+                expectedStatus: 404
             });
         });
     });

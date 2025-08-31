@@ -56,7 +56,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
             });
 
             mocha.it('should reject extremely long timeInterval string (DoS prevention)', async () => {
-                const hugeTimeInterval = 'x'.repeat(501); // Exceeds maxLength: 500
+                const hugeTimeInterval = 'x'.repeat(501);
                 const res = await chai.request(app)
                     .get('/api/readings/line/count/meters/1')
                     .query({ timeInterval: hugeTimeInterval });
@@ -170,7 +170,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
             });
 
             mocha.it('should reject extremely long timeInterval string (DoS prevention)', async () => {
-                const hugeTimeInterval = 'x'.repeat(501); // Exceeds maxLength: 500
+                const hugeTimeInterval = 'x'.repeat(501);
                 const res = await chai.request(app)
                     .get('/api/readings/line/raw/meter/1')
                     .query({ timeInterval: hugeTimeInterval });

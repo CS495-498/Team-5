@@ -104,7 +104,8 @@ mocha.describe('Conversions Parameter Validation', () => {
 
             await testInvalidField({
                 field: 'destinationId',
-                invalidValue: 1.5, // Float instead of integer
+                // Float instead of integer
+                invalidValue: 1.5,
                 endpoint: EDIT_ENDPOINT,
                 basePayload: baseConversionData,
                 expectedStatus: 403
@@ -220,7 +221,7 @@ mocha.describe('Conversions Parameter Validation', () => {
                 '../../../etc/passwd',
                 'conversion\\x00injection',
                 '\\u0000malicious',
-                'A'.repeat(10000) // DoS attempt
+                'A'.repeat(10000)
             ];
 
             for (const maliciousInput of maliciousInputs) {
@@ -520,7 +521,7 @@ mocha.describe('Conversions Parameter Validation', () => {
             // Test same source and destination (potential logical issue)
             const sameSrcDest = {
                 sourceId: 1,
-                destinationId: 1, // Same as source
+                destinationId: 1,
                 bidirectional: true,
                 slope: 1.0,
                 intercept: 0.0,
@@ -542,7 +543,7 @@ mocha.describe('Conversions Parameter Validation', () => {
                 sourceId: 1,
                 destinationId: 2,
                 bidirectional: false,
-                slope: 1e308, // Near maximum safe number
+                slope: 1e308,
                 intercept: -1e308,
                 note: 'Large number test'
             };

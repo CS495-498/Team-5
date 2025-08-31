@@ -60,7 +60,8 @@ mocha.describe('Compare Readings Parameter Validation', () => {
             });
 
             mocha.it('should reject extremely long meter ID strings (DoS prevention)', async () => {
-                const longMeterIds = '1,'.repeat(1000) + '1'; // Creates very long comma-separated list
+                // Creates very long comma-separated list
+                const longMeterIds = '1,'.repeat(1000) + '1';
                 
                 const res = await chai.request(app)
                     .get(`${BASE_METER_ENDPOINT}/${longMeterIds}`)
@@ -214,7 +215,8 @@ mocha.describe('Compare Readings Parameter Validation', () => {
             });
 
             mocha.it('should reject extremely long group ID strings (DoS prevention)', async () => {
-                const longGroupIds = '1,'.repeat(1000) + '1'; // Creates very long comma-separated list
+                // Creates very long comma-separated list
+                const longGroupIds = '1,'.repeat(1000) + '1';
                 
                 const res = await chai.request(app)
                     .get(`${BASE_GROUP_ENDPOINT}/${longGroupIds}`)

@@ -40,18 +40,16 @@ router.get('/', optionalAuthMiddleware, async (req, res) => {
 router.post('/edit', adminAuthMiddleware('edit conversions'), async (req, res) => {
 	const validConversion = {
 		type: 'object',
-		maxProperties: 6, // Prevent parameter injection attacks
+		maxProperties: 6,
 		required: ['sourceId', 'destinationId', 'bidirectional', 'slope', 'intercept'],
 		properties: {
 			sourceId: {
 				type: 'integer',
-				// Do not allow negatives for now
 				minimum: 1,
 				maximum: Number.MAX_SAFE_INTEGER
 			},
 			destinationId: {
 				type: 'integer',
-				// Do not allow negatives for now
 				minimum: 1,
 				maximum: Number.MAX_SAFE_INTEGER
 			},
@@ -100,18 +98,16 @@ router.post('/edit', adminAuthMiddleware('edit conversions'), async (req, res) =
 router.post('/addConversion', adminAuthMiddleware('add conversions'), async (req, res) => {
 	const validConversion = {
 		type: 'object',
-		maxProperties: 6, // Prevent parameter injection attacks
+		maxProperties: 6,
 		required: ['sourceId', 'destinationId', 'bidirectional', 'slope', 'intercept'],
 		properties: {
 			sourceId: {
 				type: 'integer',
-				// Do not allow negatives for now
 				minimum: 1,
 				maximum: Number.MAX_SAFE_INTEGER
 			},
 			destinationId: {
 				type: 'integer',
-				// Do not allow negatives for now
 				minimum: 1,
 				maximum: Number.MAX_SAFE_INTEGER
 			},

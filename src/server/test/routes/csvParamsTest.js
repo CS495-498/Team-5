@@ -177,7 +177,7 @@ mocha.describe('CSV Parameter Validation', () => {
                     '<script>alert("xss")</script>',
                     '../../../etc/passwd',
                     'meter\x00injection',
-                    'x'.repeat(1000) // Very long identifier
+                    'x'.repeat(1000)
                 ];
 
                 for (const maliciousInput of maliciousInputs) {
@@ -422,7 +422,7 @@ mocha.describe('CSV Parameter Validation', () => {
             try {
                 const res = await chai.request(app)
                     .post(METERS_ENDPOINT)
-                    .attach('wrongfield', testFile) // Wrong field name
+                    .attach('wrongfield', testFile)
                     .field('meterIdentifier', 'test-meter');
                 
                 // Should fail due to missing csvfile
@@ -440,7 +440,7 @@ mocha.describe('CSV Parameter Validation', () => {
                 const res = await chai.request(app)
                     .post(METERS_ENDPOINT)
                     .attach('csvfile', testFile1)
-                    .attach('csvfile', testFile2) // Multiple files - should use single()
+                    .attach('csvfile', testFile2)
                     .field('meterIdentifier', 'test-meter');
                 
                 // Should fail due to multiple files or auth
@@ -505,10 +505,10 @@ mocha.describe('CSV Parameter Validation', () => {
             
             try {
                 const payloadWithEmptyValues = {
-                    meterIdentifier: '', // Empty string
+                    meterIdentifier: '',
                     gzip: '',
                     headerRow: '',
-                    duplications: '' // Should be allowed (empty pattern)
+                    duplications: ''
                 };
 
                 const res = await chai.request(app)

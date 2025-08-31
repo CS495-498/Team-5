@@ -32,7 +32,7 @@ authMiddleware = (req, res, next) => {
 			} else {
 				try {
 					const conn = getConnection();
-					await User.getByID(decoded.data, conn); // checks if user exists in the database in case it was deleted
+					await User.getByID(decoded.data, conn);
 					req.decoded = decoded;
 					next();
 				} catch (error) {
