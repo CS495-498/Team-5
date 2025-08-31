@@ -8,7 +8,7 @@ const express = require('express');
 const Baseline = require('../models/Baseline');
 const log = require('../log');
 const validate = require('jsonschema').validate;
-const adminAuthenticator = require('./authenticator').adminAuthMiddleware;
+const { adminAuthMiddleware } = require('./authenticator');
 const router = express.Router();
 router.get('/', async (req, res) => {
 	const conn = getConnection();
@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
 		log(`Error while getting all baselines: ${err}`, 'error');
 	}
 });
-router.post('/new', adminAuthenticator('create baselines'), async (req, res) => {
+router.post('/new', adminAuthMiddleware('create baselines'), async (req, res) => {
 	const validParams = {
 		type: 'object',
 		additionalProperties: false,
