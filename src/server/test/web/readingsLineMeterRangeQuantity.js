@@ -11,20 +11,22 @@ const { chai, mocha, app } = require('../common');
 const Unit = require('../../models/Unit');
 const { prepareTest,
 	parseExpectedCsv,
-	expectRangeToEqualExpected,
-	createTimeString,
-	getUnitId,
-	ETERNITY,
-	METER_ID,
-	unitDatakWh,
-	conversionDatakWh,
-	meterDatakWh } = require('../../util/readingsUtils');
+		expectRangeToEqualExpected,
+			createTimeString,
+				getUnitId,
+					ETERNITY,
+						METER_ID,
+							unitDatakWh,
+								conversionDatakWh,
+									meterDatakWh } = require('../../util/readingsUtils');
+const { timeInterval } = require('d3');
+const { expect } = require('chai');
 
-mocha.describe('readings API', () => {
-	mocha.describe('readings test, test if data returned by API is as expected', () => {
-		mocha.describe('for line charts', () => {
-			mocha.describe('for range (min/max)', () => {
-				mocha.describe('for quantity meters', () => {
+									mocha.describe('readings API', () => {
+										mocha.describe('readings test, test if data returned by API is as expected', () => {
+												mocha.describe('for line charts', () => {
+															mocha.describe('for range (min/max)', () => {
+																			mocha.describe('for quantity meters', () => {
 					// Test using a date range of infinity, which should return as days
 					mocha.it('LR1: range should have daily points for 15 minute reading intervals and quantity units with +-inf start/end time & kWh as kWh', async () => {
 						// Load the data into the database
@@ -115,7 +117,42 @@ mocha.describe('readings API', () => {
 						},
 					);
 
-					// Add LR6 here
+					mocha.it(
+						'LR6: Range with 14 days barely gives raw points and middle readings.',
+						async () => {
+						// Load data into database 
+						await prepareTest(unitDatakWh, conversionDatakWh, meterDatakWh);
+						// Get unit ID for kWh
+						const unitId = await getUnitId('kWh');
+						// Load expected values for LR6 date range and unit configuration
+						const expected = await parseExpectedCsv('src/server/test/web/readingsData/expected_line_ri_15_mu_kWh_gu_kWh_st_2022-09-21%00#00#00_et_2022-10-05%00#00#00.csv' ,
+						);
+
+						// Send API request with LR6 date range and graphic unit
+						const res = await chai.request(app).get(`/api/unitReadings/line/meters/${METER_ID}`).query({
+							timeInterval: createTimeString('2022-09-21', '00:00:00', '2022-10-05', '00:00:00'),
+							graphicUnitId: unitId
+						});
+
+						// Extract rows from API response
+						const rows = res.body[METER_ID] || [];
+						// Loop through each row if API response and compare to corresponding expected row
+						rows.forEach((row, i) => {
+							const expectedRow = expected[i];
+							// Compare reading values
+							const actualReading = row.reading;
+							const expectedReading = parseFloat(expectedRow[0])
+							expect(actualReading).to.be.closeTo(expectedReading, 0.0001);
+
+							// Compare timestamps
+							const expectedStart = new Date(expectedRow[1]).getTime();
+							const expectedEnd   = new Date(expectedRow[2]).getTime();
+							expect(row.startTimestamp).to.equal(expectedStart);
+							expect(row.endTimestamp).to.equal(expectedEnd);
+						});
+
+					}
+					);
 
 					mocha.it(
 						'LR7: range with partial days/hours for daily gives only full days',
