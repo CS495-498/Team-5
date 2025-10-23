@@ -6,7 +6,9 @@
 
 const { expect } = require('chai');
 const { chai, mocha, app, testDB } = require('../common');
-const { validateString, validateToken, testInvalidField } = require('../util/validationHelpers');
+const { validateString, testInvalidField, validateNoExtraFields } = require('../util/validationHelpers');
+const { HTTP_CODE } = require('../../util/readingsUtils');
+const { PASSWORD_MAX_LENGTH, SHORT_STRING_MAX_LENGTH } = require('../../util/validationConstants');
 
 // Note: authenticator.js primarily contains middleware functions, not direct API endpoints
 // However, the credentialsRequestValidationMiddleware is used by other routes that accept username/password
@@ -31,8 +33,8 @@ mocha.describe('Authenticator Parameter Validation', () => {
                 endpoint: LOGIN_ENDPOINT,
                 basePayload: baseCredentials,
                 required: true,
-                minLength: 5,
-                maxLength: 254
+                minLength: 3,
+                maxLength: SHORT_STRING_MAX_LENGTH
             });
         });
 
@@ -43,21 +45,20 @@ mocha.describe('Authenticator Parameter Validation', () => {
                 basePayload: baseCredentials,
                 required: true,
                 minLength: 8,
-                maxLength: 1000
+                maxLength: PASSWORD_MAX_LENGTH
             });
         });
 
         mocha.it('should reject payloads with extra fields (parameter injection)', async () => {
-            const payloadWithExtra = {
-                ...baseCredentials,
-                maliciousField: 'injection attempt',
-                anotherField: 'should be rejected'
-            };
-
-            const res = await chai.request(app)
-                .post(LOGIN_ENDPOINT)
-                .send(payloadWithExtra);
-            expect(res).to.have.status(400);
+            await validateNoExtraFields({
+                endpoint: LOGIN_ENDPOINT,
+                basePayload: baseCredentials,
+                extraFields: {
+                    maliciousField: 'injection attempt',
+                    anotherField: 'should be rejected'
+                },
+                expectedStatus: HTTP_CODE.BAD_REQUEST
+            });
         });
 
         mocha.it('should handle malicious username inputs', async () => {
@@ -78,6 +79,23 @@ mocha.describe('Authenticator Parameter Validation', () => {
                 basePayload: baseCredentials,
                 expectedStatus: 401
             });
+
+            // Test command injection attempt
+            await testInvalidField({
+                field: 'username',
+                invalidValue: '$(rm -rf /)',
+                endpoint: LOGIN_ENDPOINT,
+                basePayload: baseCredentials,
+                expectedStatus: 401
+            });
+
+            await testInvalidField({
+                field: 'username',
+                invalidValue: '| cat /etc/passwd',
+                endpoint: LOGIN_ENDPOINT,
+                basePayload: baseCredentials,
+                expectedStatus: 401
+            });
         });
 
         mocha.it('should handle malicious password inputs', async () => {
@@ -94,6 +112,23 @@ mocha.describe('Authenticator Parameter Validation', () => {
             await testInvalidField({
                 field: 'password',
                 invalidValue: 'password\x00injection',
+                endpoint: LOGIN_ENDPOINT,
+                basePayload: baseCredentials,
+                expectedStatus: 401
+            });
+
+            // Test command injection attempt
+            await testInvalidField({
+                field: 'password',
+                invalidValue: '$(rm -rf /)',
+                endpoint: LOGIN_ENDPOINT,
+                basePayload: baseCredentials,
+                expectedStatus: 401
+            });
+
+            await testInvalidField({
+                field: 'password',
+                invalidValue: '`shutdown -h now`',
                 endpoint: LOGIN_ENDPOINT,
                 basePayload: baseCredentials,
                 expectedStatus: 401
@@ -140,13 +175,13 @@ mocha.describe('Authenticator Parameter Validation', () => {
             expect(res).to.have.status(401);
         });
 
-        mocha.it('should handle extremely long tokens (DoS prevention)', async () => {
+        mocha.it('should handle extremely long bearer tokens', async () => {
+            // Emulate a bearer token prefix to ensure length check still applies
             const hugeToken = 'Bearer ' + 'x'.repeat(2100);
-            
             const res = await chai.request(app)
                 .get(PROTECTED_ENDPOINT)
                 .set('token', hugeToken);
-            
+
             expect(res).to.have.status(403);
         });
 

@@ -10,6 +10,7 @@ const moment = require('moment');
 const { getConnection } = require('../db');
 
 const Reading = require('../models/Reading');
+const { GENERAL_STRING_MAX_LENGTH, NUMERIC_ID_MAX_LENGTH } = require('../util/validationConstants');
 
 function validateMeterCompareReadingsParams(params) {
 	const validParams = {
@@ -19,7 +20,7 @@ function validateMeterCompareReadingsParams(params) {
 		properties: {
 			meter_ids: {
 				type: 'string',
-				maxLength: 1000,
+				maxLength: GENERAL_STRING_MAX_LENGTH,
 				pattern: '^\\d+(?:,\\d+)*$'
 			}
 		}
@@ -36,7 +37,7 @@ function validateGroupCompareReadingsParams(params) {
 		properties: {
 			group_ids: {
 				type: 'string',
-				maxLength: 1000,
+				maxLength: GENERAL_STRING_MAX_LENGTH,
 				pattern: '^\\d+(?:,\\d+)*$'
 			}
 		}
@@ -53,19 +54,19 @@ function validateQueryParams(queryParams) {
 		properties: {
 			curr_start: {
 				type: 'string',
-				maxLength: 100
+				maxLength: GENERAL_STRING_MAX_LENGTH
 			},
 			curr_end: {
 				type: 'string',
-				maxLength: 100
+				maxLength: GENERAL_STRING_MAX_LENGTH
 			},
 			shift: {
 				type: 'string',
-				maxLength: 100
+				maxLength: GENERAL_STRING_MAX_LENGTH
 			},
 			graphicUnitId: {
 				type: 'string',
-				maxLength: 20,
+				maxLength: NUMERIC_ID_MAX_LENGTH,
 				pattern: '^\\d+$'
 			}
 		}

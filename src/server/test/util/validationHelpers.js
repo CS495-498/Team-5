@@ -9,6 +9,7 @@
 const { expect } = require('chai');
 const chaiHttp = require('chai-http');
 const { chai, app } = require('../common');
+const { HTTP_CODE } = require('../../util/readingsUtils');
 
 chai.use(chaiHttp);
 
@@ -164,11 +165,92 @@ async function validateToken({ endpoint, method = 'post', sendTokenIn = 'header'
     expect(res2).to.have.status(403);
 }
 
+/**
+ * Validates that endpoints reject malformed comma-separated identifier lists.
+ *
+ * @param baseEndpoint the base endpoint path before the id segment
+ * @param invalidValues array of invalid id strings to test
+ * @param query optional query parameters to include (for GET requests)
+ * @param method HTTP method (default 'get')
+ * @param expectedStatus expected status code (default 400)
+ */
+async function validateCommaSeparatedIdPatterns({
+    baseEndpoint,
+    invalidValues,
+    query = {},
+    method = 'get',
+    expectedStatus = HTTP_CODE.BAD_REQUEST
+}) {
+    for (const invalidValue of invalidValues) {
+        let request = chai.request(app)[method](`${baseEndpoint}/${invalidValue}`);
+
+        if (method.toLowerCase() === 'get') {
+            request = request.query(query);
+        } else {
+            request = request.send(query);
+        }
+
+        const res = await request;
+        expect(res.status).to.equal(expectedStatus);
+    }
+}
+
+/**
+ * Verifies that endpoints accept valid comma-separated identifier lists.
+ *
+ * @param baseEndpoint the base endpoint path before the id segment
+ * @param validValues array of valid id strings to test
+ * @param query optional query parameters to include (for GET requests)
+ * @param method HTTP method (default 'get')
+ * @param expectedStatuses allowable response status codes (defaults to 200/500)
+ */
+async function expectValidCommaSeparatedIds({
+    baseEndpoint,
+    validValues,
+    query = {},
+    method = 'get',
+    expectedStatuses = [HTTP_CODE.OK, HTTP_CODE.INTERNAL_SERVER_ERROR]
+}) {
+    for (const value of validValues) {
+        let request = chai.request(app)[method](`${baseEndpoint}/${value}`);
+
+        if (method.toLowerCase() === 'get') {
+            request = request.query(query);
+        } else {
+            request = request.send(query);
+        }
+
+        const res = await request;
+        expect(expectedStatuses).to.include(res.status);
+    }
+}
+
+/**
+ * Validates that additional properties are rejected when payloads exceed
+ * the defined schema.
+ *
+ * @param endpoint the API endpoint URL to test
+ * @param basePayload a baseline valid payload object
+ * @param extraFields an object containing the extra fields to send
+ * @param expectedStatus expected HTTP status code (default 400)
+ */
+async function validateNoExtraFields({ endpoint, basePayload, extraFields = {}, expectedStatus = HTTP_CODE.BAD_REQUEST }) {
+    const payload = {
+        ...basePayload,
+        ...extraFields
+    };
+    const res = await chai.request(app).post(endpoint).send(payload);
+    expect(res).to.have.status(expectedStatus);
+}
+
 module.exports = {
     testInvalidField,
     validateString,
     validateInt,
     validateBool,
     validateMinMaxRelation,
-    validateToken
+    validateToken,
+    validateCommaSeparatedIdPatterns,
+    expectValidCommaSeparatedIds,
+    validateNoExtraFields
 };

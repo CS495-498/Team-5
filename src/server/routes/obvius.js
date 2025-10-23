@@ -132,7 +132,6 @@ function verifyObviusUser(req, res, next) {
 
 	if (!password) {
 		failure(req, res, 'password parameter is required.');
-		return;
 	} else if (!username) {
 		failure(req, res, 'username parameter is required.');
 		return;

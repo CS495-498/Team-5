@@ -6,7 +6,12 @@
 
 const { expect } = require('chai');
 const { chai, mocha, app, testDB } = require('../common');
-const { validateString, testInvalidField } = require('../util/validationHelpers');
+const {
+    validateString,
+    testInvalidField,
+    validateCommaSeparatedIdPatterns,
+    expectValidCommaSeparatedIds
+} = require('../util/validationHelpers');
 
 mocha.describe('Compare Readings Parameter Validation', () => {
 
@@ -22,41 +27,36 @@ mocha.describe('Compare Readings Parameter Validation', () => {
 
         mocha.describe('URL Parameter Validation - meter_ids', () => {
             mocha.it('should accept valid single meter ID', async () => {
-                const res = await chai.request(app)
-                    .get(`${BASE_METER_ENDPOINT}/1`)
-                    .query(validQuery);
-                
-                // Should return 200 or 500 (DB error) - no auth required for reading
-                expect([200, 500]).to.include(res.status);
+                await expectValidCommaSeparatedIds({
+                    baseEndpoint: BASE_METER_ENDPOINT,
+                    validValues: ['1'],
+                    query: validQuery
+                });
             });
 
             mocha.it('should accept valid comma-separated meter IDs', async () => {
-                const res = await chai.request(app)
-                    .get(`${BASE_METER_ENDPOINT}/1,2,3`)
-                    .query(validQuery);
-                
-                expect([200, 500]).to.include(res.status);
+                await expectValidCommaSeparatedIds({
+                    baseEndpoint: BASE_METER_ENDPOINT,
+                    validValues: ['1,2,3'],
+                    query: validQuery
+                });
             });
 
             mocha.it('should reject invalid meter ID patterns', async () => {
-                const invalidPatterns = [
-                    'abc',           // Non-numeric
-                    '1,',            // Trailing comma
-                    ',1',            // Leading comma
-                    '1,,2',          // Double comma
-                    '1;2',           // Wrong separator
-                    '1.5',           // Decimal
-                    '-1',            // Negative
-                    '1 2',           // Space separator
-                ];
-
-                for (const invalidPattern of invalidPatterns) {
-                    const res = await chai.request(app)
-                        .get(`${BASE_METER_ENDPOINT}/${invalidPattern}`)
-                        .query(validQuery);
-                    
-                    expect(res.status).to.equal(400);
-                }
+                await validateCommaSeparatedIdPatterns({
+                    baseEndpoint: BASE_METER_ENDPOINT,
+                    invalidValues: [
+                        'abc',           // Non-numeric
+                        '1,',            // Trailing comma
+                        ',1',            // Leading comma
+                        '1,,2',          // Double comma
+                        '1;2',           // Wrong separator
+                        '1.5',           // Decimal
+                        '-1',            // Negative
+                        '1 2',           // Space separator
+                    ],
+                    query: validQuery
+                });
             });
 
             mocha.it('should reject extremely long meter ID strings (DoS prevention)', async () => {
@@ -177,41 +177,36 @@ mocha.describe('Compare Readings Parameter Validation', () => {
 
         mocha.describe('URL Parameter Validation - group_ids', () => {
             mocha.it('should accept valid single group ID', async () => {
-                const res = await chai.request(app)
-                    .get(`${BASE_GROUP_ENDPOINT}/1`)
-                    .query(validQuery);
-                
-                // Should return 200 or 500 (DB error) - no auth required for reading
-                expect([200, 500]).to.include(res.status);
+                await expectValidCommaSeparatedIds({
+                    baseEndpoint: BASE_GROUP_ENDPOINT,
+                    validValues: ['1'],
+                    query: validQuery
+                });
             });
 
             mocha.it('should accept valid comma-separated group IDs', async () => {
-                const res = await chai.request(app)
-                    .get(`${BASE_GROUP_ENDPOINT}/1,2,3`)
-                    .query(validQuery);
-                
-                expect([200, 500]).to.include(res.status);
+                await expectValidCommaSeparatedIds({
+                    baseEndpoint: BASE_GROUP_ENDPOINT,
+                    validValues: ['1,2,3'],
+                    query: validQuery
+                });
             });
 
             mocha.it('should reject invalid group ID patterns', async () => {
-                const invalidPatterns = [
-                    'abc',           // Non-numeric
-                    '1,',            // Trailing comma
-                    ',1',            // Leading comma
-                    '1,,2',          // Double comma
-                    '1;2',           // Wrong separator
-                    '1.5',           // Decimal
-                    '-1',            // Negative
-                    '1 2',           // Space separator
-                ];
-
-                for (const invalidPattern of invalidPatterns) {
-                    const res = await chai.request(app)
-                        .get(`${BASE_GROUP_ENDPOINT}/${invalidPattern}`)
-                        .query(validQuery);
-                    
-                    expect(res.status).to.equal(400);
-                }
+                await validateCommaSeparatedIdPatterns({
+                    baseEndpoint: BASE_GROUP_ENDPOINT,
+                    invalidValues: [
+                        'abc',           // Non-numeric
+                        '1,',            // Trailing comma
+                        ',1',            // Leading comma
+                        '1,,2',          // Double comma
+                        '1;2',           // Wrong separator
+                        '1.5',           // Decimal
+                        '-1',            // Negative
+                        '1 2',           // Space separator
+                    ],
+                    query: validQuery
+                });
             });
 
             mocha.it('should reject extremely long group ID strings (DoS prevention)', async () => {
