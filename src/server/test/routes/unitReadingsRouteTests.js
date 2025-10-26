@@ -208,8 +208,8 @@ mocha.describe('unit readings routes', () => {
 				const validationResult = validateGroupThreeDReadingsParams({ meter_ids: '1,2' });
 				expect(validationResult).to.equal(false);
 			});
-			mocha.it('validates when the group_id param is valid', () => {
-				const validationResult = validateGroupThreeDReadingsParams({ group_id: { meter_ids: '1' } });
+		mocha.it('validates when the group_id param is valid', () => {
+			const validationResult = validateGroupThreeDReadingsParams({ group_id: '1' });
 				expect(validationResult).to.equal(true);
 			});
 			mocha.it('validates when the time interval is valid', () => {
