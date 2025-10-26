@@ -11,6 +11,7 @@ const validate = require('jsonschema').validate;
 const { getConnection } = require('../db');
 const jwt = require('jsonwebtoken');
 const secretToken = require('../config').secretToken;
+const { GENERAL_STRING_MAX_LENGTH, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, TOKEN_MAX_LENGTH, USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH, NUMERIC_ID_MAX_LENGTH } = require('../util/validationConstants');
 
 const router = express.Router();
 
@@ -32,7 +33,7 @@ router.get('/token', optionalAuthMiddleware, async (req, res) => {
 	const token = req.headers.token || req.body.token || req.query.token;
 	const validParams = {
 		type: 'string',
-		maxLength: 2000
+		maxLength: TOKEN_MAX_LENGTH
 	};
 	if (!validate(token, validParams).valid) {
 		res.status(403).json({ message: 'No token provided or JSON was invalid.' });
@@ -69,7 +70,7 @@ router.get('/:user_id', adminAuthMiddleware('get one user'), async (req, res) =>
 			user_id: {
 				type: 'string',
 				pattern: '^\\d+$',
-				maxLength: 20
+				maxLength: NUMERIC_ID_MAX_LENGTH
 			}
 		}
 	};
@@ -96,13 +97,13 @@ router.post('/create', adminAuthMiddleware('create a user.'), async (req, res) =
 		properties: {
 			username: {
 				type: 'string',
-				minLength: 5,
-				maxLength: 254
+				minLength: USERNAME_MIN_LENGTH,
+				maxLength: USERNAME_MAX_LENGTH
 			},
 			password: {
 				type: 'string',
-				minLength: 8,
-				maxLength: 1000
+				minLength: PASSWORD_MIN_LENGTH,
+				maxLength: PASSWORD_MAX_LENGTH
 			},
 			role: {
 				type: 'string',
@@ -110,7 +111,7 @@ router.post('/create', adminAuthMiddleware('create a user.'), async (req, res) =
 			},
 			note: {
 				type: 'string',
-				maxLength: 1000
+				maxLength: GENERAL_STRING_MAX_LENGTH
 			}
 		}
 	};
@@ -156,8 +157,8 @@ router.post('/edit', adminAuthMiddleware('edit a user'), async (req, res) => {
 					},
 					username: {
 						type: 'string',
-						minLength: 5,
-						maxLength: 254
+						minLength: USERNAME_MIN_LENGTH,
+						maxLength: USERNAME_MAX_LENGTH
 					},
 					role: {
 						type: 'string',
@@ -166,11 +167,12 @@ router.post('/edit', adminAuthMiddleware('edit a user'), async (req, res) => {
 					password: {
 						type: 'string',
 						// TODO: Optional field - if present, should be 8-1000 chars
-						maxLength: 1000
+						minLength: PASSWORD_MIN_LENGTH,
+						maxLength: PASSWORD_MAX_LENGTH
 					},
 					note: {
 						type: 'string',
-						maxLength: 1000
+						maxLength: GENERAL_STRING_MAX_LENGTH
 					}
 				}
 			}

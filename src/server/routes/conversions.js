@@ -11,6 +11,7 @@ const validate = require('jsonschema').validate;
 
 const { simulateDeleteConversion } = require('../services/conversionSimulation');
 const { adminAuthMiddleware, optionalAuthMiddleware } = require('./authenticator');
+const { GENERAL_STRING_MAX_LENGTH } = require('../util/validationConstants');
 
 
 const router = express.Router();
@@ -64,9 +65,10 @@ router.post('/edit', adminAuthMiddleware('edit conversions'), async (req, res) =
 			},
 			note: {
 				oneOf: [
-					{ type: 'string',
-						maxLength: 1000
-					 },
+					{
+						type: 'string',
+						maxLength: GENERAL_STRING_MAX_LENGTH
+					},
 					{ type: 'null' }
 				]
 			}
@@ -122,9 +124,10 @@ router.post('/addConversion', adminAuthMiddleware('add conversions'), async (req
 			},
 			note: {
 				oneOf: [
-					{ type: 'string',
-						maxLength: 1000
-					 },
+					{
+						type: 'string',
+						maxLength: GENERAL_STRING_MAX_LENGTH
+					},
 					{ type: 'null' }
 				]
 			}

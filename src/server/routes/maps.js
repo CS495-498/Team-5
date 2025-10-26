@@ -12,6 +12,7 @@ const Point = require('../models/Point');
 const { isTokenAuthorized } = require('../util/userRoles');
 const User = require('../models/User');
 const { DEFAULT_CIRCLE_SIZE } = require('../models/Map');
+const { GENERAL_STRING_MAX_LENGTH, SHORT_STRING_MAX_LENGTH, NUMERIC_ID_MAX_LENGTH } = require('../util/validationConstants');
 
 const router = express.Router();
 
@@ -57,7 +58,7 @@ router.get('/:map_id', optionalAuthMiddleware, async (req, res) => {
 		properties: {
 			map_id: {
 				type: 'string',
-				maxLength: 20,
+				maxLength: NUMERIC_ID_MAX_LENGTH,
 				pattern: '^\\d+$'
 			}
 		}
@@ -85,7 +86,7 @@ router.post('/create', adminAuthMiddleware('create maps'), async (req, res) => {
 			name: {
 				type: 'string',
 				minLength: 1,
-				maxLength: 100
+				maxLength: SHORT_STRING_MAX_LENGTH
 			},
 			filename: {
 				type: 'string',
@@ -94,16 +95,16 @@ router.post('/create', adminAuthMiddleware('create maps'), async (req, res) => {
 			modifiedDate: {
 				type: 'string',
 				minLength: 1,
-				maxLength: 100
+				maxLength: GENERAL_STRING_MAX_LENGTH
 			},
 			mapSource: {
 				type: 'string',
 				minLength: 1,
-				maxLength: 1000
+				maxLength: GENERAL_STRING_MAX_LENGTH
 			},
 			note: {
 				oneOf: [
-					{ type: 'string', maxLength: 1000 },
+					{ type: 'string', maxLength: GENERAL_STRING_MAX_LENGTH },
 					{ type: 'null' }
 				]
 			},
@@ -200,31 +201,31 @@ router.post('/edit', adminAuthMiddleware('edit maps'), async (req, res) => {
 				minimum: 1,
 				maximum: 2147483647
 			},
-			name: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
+		name: {
+			type: 'string',
+			minLength: 1,
+			maxLength: SHORT_STRING_MAX_LENGTH
+		},
 			filename: {
 				type: 'string',
 				maxLength: 500
 			},
-			modifiedDate: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 100
-			},
-			mapSource: {
-				type: 'string',
-				minLength: 1,
-				maxLength: 1000
-			},
-			note: {
-				oneOf: [
-					{ type: 'string', maxLength: 1000 },
-					{ type: 'null' }
-				]
-			},
+		modifiedDate: {
+			type: 'string',
+			minLength: 1,
+			maxLength: GENERAL_STRING_MAX_LENGTH
+		},
+		mapSource: {
+			type: 'string',
+			minLength: 1,
+			maxLength: GENERAL_STRING_MAX_LENGTH
+		},
+		note: {
+			oneOf: [
+				{ type: 'string', maxLength: GENERAL_STRING_MAX_LENGTH },
+				{ type: 'null' }
+			]
+		},
 			displayable: {
 				type: 'boolean'
 			},

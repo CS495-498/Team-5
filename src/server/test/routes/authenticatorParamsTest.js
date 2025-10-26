@@ -8,7 +8,7 @@ const { expect } = require('chai');
 const { chai, mocha, app, testDB } = require('../common');
 const { validateString, testInvalidField, validateNoExtraFields } = require('../util/validationHelpers');
 const { HTTP_CODE } = require('../../util/readingsUtils');
-const { PASSWORD_MAX_LENGTH, SHORT_STRING_MAX_LENGTH } = require('../../util/validationConstants');
+const { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH } = require('../../util/validationConstants');
 
 // Note: authenticator.js primarily contains middleware functions, not direct API endpoints
 // However, the credentialsRequestValidationMiddleware is used by other routes that accept username/password
@@ -33,8 +33,8 @@ mocha.describe('Authenticator Parameter Validation', () => {
                 endpoint: LOGIN_ENDPOINT,
                 basePayload: baseCredentials,
                 required: true,
-                minLength: 3,
-                maxLength: SHORT_STRING_MAX_LENGTH
+                minLength: USERNAME_MIN_LENGTH,
+                maxLength: USERNAME_MAX_LENGTH
             });
         });
 
@@ -44,7 +44,7 @@ mocha.describe('Authenticator Parameter Validation', () => {
                 endpoint: LOGIN_ENDPOINT,
                 basePayload: baseCredentials,
                 required: true,
-                minLength: 8,
+                minLength: PASSWORD_MIN_LENGTH,
                 maxLength: PASSWORD_MAX_LENGTH
             });
         });

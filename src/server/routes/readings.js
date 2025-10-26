@@ -9,6 +9,7 @@ const TimeInterval = require('../../common/TimeInterval').TimeInterval;
 const { log } = require('../log');
 const validate = require('jsonschema').validate;
 const { getConnection } = require('../db');
+const { GENERAL_STRING_MAX_LENGTH } = require('../util/validationConstants');
 
 const router = express.Router();
 
@@ -21,10 +22,10 @@ router.get('/line/count/meters/:meter_ids', optionalAuthMiddleware, async (req, 
 		maxProperties: 1,
 		required: ['meter_ids'],
 		properties: {
-			meter_ids: {
-				type: 'string',
-				maxLength: 1000
-			}
+		meter_ids: {
+			type: 'string',
+			maxLength: GENERAL_STRING_MAX_LENGTH
+		}
 		}
 	};
 	const validQueries = {
@@ -34,7 +35,7 @@ router.get('/line/count/meters/:meter_ids', optionalAuthMiddleware, async (req, 
 		properties: {
 			timeInterval: {
 				type: 'string',
-				maxLength: 500
+				maxLength: GENERAL_STRING_MAX_LENGTH
 			}
 		}
 	};
@@ -85,7 +86,7 @@ router.get('/line/raw/meter/:meter_id', optionalAuthMiddleware, async (req, res)
 		properties: {
 			timeInterval: {
 				type: 'string',
-				maxLength: 500
+				maxLength: GENERAL_STRING_MAX_LENGTH
 			}
 		}
 	};
@@ -111,4 +112,3 @@ router.get('/line/raw/meter/:meter_id', optionalAuthMiddleware, async (req, res)
 
 
 module.exports = router;
-

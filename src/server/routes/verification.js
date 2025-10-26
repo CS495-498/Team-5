@@ -6,6 +6,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const secretToken = require('../config').secretToken;
 const validate = require('jsonschema').validate;
+const { TOKEN_MAX_LENGTH } = require('../util/validationConstants');
 
 const router = express.Router();
 
@@ -21,7 +22,7 @@ router.post('/', (req, res) => {
 		properties: {
 			token: {
 				type: 'string',
-				maxLength: 2000
+				maxLength: TOKEN_MAX_LENGTH
 			}
 		}
 	};

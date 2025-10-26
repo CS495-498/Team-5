@@ -8,6 +8,7 @@ const { log } = require('../log');
 const { adminAuthMiddleware, optionalAuthMiddleware } = require('./authenticator');
 const validate = require('jsonschema').validate;
 const { getConnection } = require('../db');
+const { GENERAL_STRING_MAX_LENGTH, SHORT_STRING_MAX_LENGTH } = require('../util/validationConstants');
 
 const router = express.Router();
 
@@ -41,11 +42,11 @@ router.post('/', adminAuthMiddleware('edit site preferences'), async (req, res) 
 				properties: {
 					displayTitle: {
 						type: 'string',
-						maxLength: 100
+						maxLength: SHORT_STRING_MAX_LENGTH
 					},
 					defaultChartToRender: {
 						type: 'string',
-						maxLength: 50
+						maxLength: SHORT_STRING_MAX_LENGTH
 					},
 					defaultBarStacking: {
 						type: 'boolean'
@@ -56,7 +57,7 @@ router.post('/', adminAuthMiddleware('edit site preferences'), async (req, res) 
 					},
 					defaultTimezone: {
 						oneOf: [
-							{ type: 'string', maxLength: 50 },
+							{ type: 'string', maxLength: SHORT_STRING_MAX_LENGTH },
 							{ type: 'null' }
 						]
 					},
@@ -75,15 +76,15 @@ router.post('/', adminAuthMiddleware('edit site preferences'), async (req, res) 
 					},
 					defaultMeterReadingFrequency: {
 						type: 'string',
-						maxLength: 50
+						maxLength: SHORT_STRING_MAX_LENGTH
 					},
 					defaultMeterMinimumDate: {
 						type: 'string',
-						maxLength: 100
+						maxLength: GENERAL_STRING_MAX_LENGTH
 					},
 					defaultMeterMaximumDate: {
 						type: 'string',
-						maxLength: 100
+						maxLength: GENERAL_STRING_MAX_LENGTH
 					},
 					defaultMeterReadingGap: {
 						type: 'number',
@@ -118,4 +119,3 @@ router.post('/', adminAuthMiddleware('edit site preferences'), async (req, res) 
 });
 
 module.exports = router;
-

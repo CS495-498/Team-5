@@ -11,6 +11,7 @@ const validate = require('jsonschema').validate;
 const { log } = require('../log');
 const { getConnection } = require('../db');
 const { credentialsRequestValidationMiddleware } = require('./authenticator');
+const { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH } = require('../util/validationConstants');
 
 const router = express.Router();
 
@@ -27,13 +28,13 @@ router.post('/', credentialsRequestValidationMiddleware, async (req, res) => {
 		properties: {
 			username: {
 				type: 'string',
-				minLength: 5,
-				maxLength: 254
+				minLength: USERNAME_MIN_LENGTH,
+				maxLength: USERNAME_MAX_LENGTH
 			},
 			password: {
 				type: 'string',
-				minLength: 8,
-				maxLength: 1000
+				minLength: PASSWORD_MIN_LENGTH,
+				maxLength: PASSWORD_MAX_LENGTH
 			}
 		}
 	};

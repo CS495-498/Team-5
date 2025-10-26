@@ -11,7 +11,7 @@ const validate = require('jsonschema').validate;
 const { isTokenAuthorized, isUserAuthorized } = require('../util/userRoles');
 const { getConnection } = require('../db');
 const escapeHtml = require('escape-html');
-const { PASSWORD_MAX_LENGTH, TOKEN_MAX_LENGTH } = require('../util/validationConstants');
+const { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, TOKEN_MAX_LENGTH, USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH } = require('../util/validationConstants');
 
 /**
  * Middleware function to force a route to require authentication
@@ -58,12 +58,12 @@ function credentialsRequestValidationMiddleware(req, res, next) {
 		properties: {
 			username: {
 				type: 'string',
-				minLength: 3,
-				maxLength: 254
+				minLength: USERNAME_MIN_LENGTH,
+				maxLength: USERNAME_MAX_LENGTH
 			},
 			password: {
 				type: 'string',
-				minLength: 8,
+				minLength: PASSWORD_MIN_LENGTH,
 				maxLength: PASSWORD_MAX_LENGTH
 			}
 		}
