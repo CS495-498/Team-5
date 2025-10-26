@@ -44,7 +44,14 @@ router.get('/line/count/meters/:meter_ids', optionalAuthMiddleware, async (req, 
 	} else {
 		const conn = getConnection();
 		const meterIDs = req.params.meter_ids.split(',').map(s => parseInt(s));
-		const timeInterval = TimeInterval.fromString(req.query.timeInterval);
+		let timeInterval;
+		try {
+			timeInterval = TimeInterval.fromString(req.query.timeInterval);
+		} catch (err) {
+			log.warn(`Invalid timeInterval supplied for readings count: ${req.query.timeInterval}`, err);
+			res.sendStatus(400);
+			return;
+		}
 		try {
 			let count = 0;
 			for (var i = 0; i < meterIDs.length; i++) {
@@ -96,7 +103,14 @@ router.get('/line/raw/meter/:meter_id', optionalAuthMiddleware, async (req, res)
 		const conn = getConnection();
 		// Get the routed meter id and time for the desired readings.
 		const meterID = req.params.meter_id;
-		const timeInterval = TimeInterval.fromString(req.query.timeInterval);
+		let timeInterval;
+		try {
+			timeInterval = TimeInterval.fromString(req.query.timeInterval);
+		} catch (err) {
+			log.warn(`Invalid timeInterval supplied for raw readings: ${req.query.timeInterval}`, err);
+			res.sendStatus(400);
+			return;
+		}
 		try {
 			// Get the raw readings for this meter over time range desired.
 			// Note this returns unusual identifiers to save space and does not return the meter id.
