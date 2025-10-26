@@ -52,6 +52,12 @@ router.get('/line/count/meters/:meter_ids', optionalAuthMiddleware, async (req, 
 			res.sendStatus(400);
 			return;
 		}
+		if ((timeInterval.startTimestamp && !timeInterval.startTimestamp.isValid())
+			|| (timeInterval.endTimestamp && !timeInterval.endTimestamp.isValid())) {
+			log.warn(`Invalid moment parsed for readings count: ${req.query.timeInterval}`);
+			res.sendStatus(400);
+			return;
+		}
 		try {
 			let count = 0;
 			for (var i = 0; i < meterIDs.length; i++) {
@@ -108,6 +114,12 @@ router.get('/line/raw/meter/:meter_id', optionalAuthMiddleware, async (req, res)
 			timeInterval = TimeInterval.fromString(req.query.timeInterval);
 		} catch (err) {
 			log.warn(`Invalid timeInterval supplied for raw readings: ${req.query.timeInterval}`, err);
+			res.sendStatus(400);
+			return;
+		}
+		if ((timeInterval.startTimestamp && !timeInterval.startTimestamp.isValid())
+			|| (timeInterval.endTimestamp && !timeInterval.endTimestamp.isValid())) {
+			log.warn(`Invalid moment parsed for raw readings: ${req.query.timeInterval}`);
 			res.sendStatus(400);
 			return;
 		}
