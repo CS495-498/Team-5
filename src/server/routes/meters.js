@@ -131,11 +131,11 @@ router.get('/:meter_id', optionalAuthMiddleware, async (req, res) => {
 		additionalProperties: false,
 		required: ['meter_id'],
 		properties: {
-		meter_id: {
-			type: 'string',
-			pattern: '^\\d+$',
-			maxLength: NUMERIC_ID_MAX_LENGTH
-		}
+			meter_id: {
+				type: 'string',
+				pattern: '^\\d+$',
+				maxLength: NUMERIC_ID_MAX_LENGTH
+			}
 		}
 	};
 	if (!validate(req.params, validParams).valid) {
@@ -168,7 +168,7 @@ function validateMeterParams(params) {
 		required: ['name', 'url', 'enabled', 'displayable', 'meterType', 'timeZone', 'note', 'area'],
 		properties: {
 			id: { type: 'integer', minimum: 1 },
-		name: { type: 'string', maxLength: SHORT_STRING_MAX_LENGTH },
+			name: { type: 'string', maxLength: SHORT_STRING_MAX_LENGTH },
 			url: {
 				oneOf: [
 					{ type: 'string' },
@@ -177,17 +177,17 @@ function validateMeterParams(params) {
 			},
 			enabled: { type: 'boolean' },
 			displayable: { type: 'boolean' },
-		meterType: {
-			type: 'string',
-			enum: Object.values(Meter.type),
-			maxLength: SHORT_STRING_MAX_LENGTH
-		},
-		timeZone: {
-			oneOf: [
-				{ type: 'string', maxLength: GENERAL_STRING_MAX_LENGTH },
-				{ type: 'null' }
-			]
-		},
+			meterType: {
+				type: 'string',
+				enum: Object.values(Meter.type),
+				maxLength: SHORT_STRING_MAX_LENGTH
+			},
+			timeZone: {
+				oneOf: [
+					{ type: 'string', maxLength: STRING_GENERAL_MAX_LENGTH },
+					{ type: 'null' }
+				]
+			},
 			gps: {
 				oneOf: [
 					{
@@ -201,41 +201,41 @@ function validateMeterParams(params) {
 					{ type: 'null' }
 				]
 			},
-		identifier: {
-			oneOf: [
-				{ type: 'string', maxLength: SHORT_STRING_MAX_LENGTH },
-				{ type: 'null' }
-			]
-		},
-		note: {
-			oneOf: [
-				{ type: 'string', maxLength: GENERAL_STRING_MAX_LENGTH },
-				{ type: 'null' }
-			]
-		},
+			identifier: {
+				oneOf: [
+					{ type: 'string', maxLength: SHORT_STRING_MAX_LENGTH },
+					{ type: 'null' }
+				]
+			},
+			note: {
+				oneOf: [
+					{ type: 'string', maxLength: STRING_GENERAL_MAX_LENGTH },
+					{ type: 'null' }
+				]
+			},
 			area: { type: 'number', minimum: 0 },
 			cumulative: { type: 'boolean' },
 			cumulativeReset: { type: 'boolean' },
-		cumulativeResetStart: { type: 'string', maxLength: GENERAL_STRING_MAX_LENGTH },
-		cumulativeResetEnd: { type: 'string', maxLength: GENERAL_STRING_MAX_LENGTH },
+			cumulativeResetStart: { type: 'string', maxLength: STRING_GENERAL_MAX_LENGTH },
+			cumulativeResetEnd: { type: 'string', maxLength: STRING_GENERAL_MAX_LENGTH },
 			readingGap: { type: 'number' },
 			readingVariation: { type: 'number' },
 			readingDuplication: { type: 'integer', minimum: '1', maximum: '9' },
-		timeSort: {
-			type: 'string',
-			enum: Object.values(MeterTimeSortTypesJS),
-			maxLength: SHORT_STRING_MAX_LENGTH
-		},
+			timeSort: {
+				type: 'string',
+				enum: Object.values(MeterTimeSortTypesJS),
+				maxLength: SHORT_STRING_MAX_LENGTH
+			},
 			endOnlyTime: { type: 'boolean' },
 			reading: { type: 'number' },
-		startTimestamp: { type: 'string', maxLength: GENERAL_STRING_MAX_LENGTH },
-		endTimestamp: { type: 'string', maxLength: GENERAL_STRING_MAX_LENGTH },
-		previousEnd: {
-			oneOf: [
-				{ type: 'string', maxLength: GENERAL_STRING_MAX_LENGTH },
-				{ type: 'null' }
-			]
-		},
+			startTimestamp: { type: 'string', maxLength: STRING_GENERAL_MAX_LENGTH },
+			endTimestamp: { type: 'string', maxLength: STRING_GENERAL_MAX_LENGTH },
+			previousEnd: {
+				oneOf: [
+					{ type: 'string', maxLength: STRING_GENERAL_MAX_LENGTH },
+					{ type: 'null' }
+				]
+			},
 			unitId: { type: 'integer' },
 			defaultGraphicUnit: { type: 'integer' },
 			areaUnit: {
@@ -244,11 +244,11 @@ function validateMeterParams(params) {
 				maxLength: 50,
 				enum: Object.values(Unit.areaUnitType)
 			},
-		readingFrequency: { type: 'string', maxLength: GENERAL_STRING_MAX_LENGTH },
+			readingFrequency: { type: 'string', maxLength: STRING_GENERAL_MAX_LENGTH },
 			minVal: { type: 'number' },
 			maxVal: { type: 'number' },
-		minDate: { type: 'string', maxLength: GENERAL_STRING_MAX_LENGTH },
-		maxDate: { type: 'string', maxLength: GENERAL_STRING_MAX_LENGTH },
+			minDate: { type: 'string', maxLength: STRING_GENERAL_MAX_LENGTH },
+			maxDate: { type: 'string', maxLength: STRING_GENERAL_MAX_LENGTH },
 			maxError: { type: 'integer' },
 			disableChecks: {
 				type: 'string',
