@@ -30,7 +30,7 @@ const { getConnection } = require('../db');
 const escapeHtml = require('escape-html');
 const { sanitizeForLog } = require('../util/sanitizeForLog');
 
-const upload = multer({ 
+const upload = multer({
 	storage: multer.memoryStorage(),
 	limits: {
 		fileSize: 50 * 1024 * 1024, // 50MB limit
