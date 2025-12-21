@@ -10,15 +10,15 @@ const { STRING_GENERAL_MAX_LENGTH } = require('../../util/validationConstants');
 
 mocha.describe('Readings Route Parameter Validation', () => {
 
-	const LINE_COUNT_ENDPOINT = '/api/readings/line/count/meters/1,2,3';
-	const RAW_READINGS_ENDPOINT = '/api/readings/line/raw/meter/1';
+	const LINE_COUNT_BASE_ENDPOINT = '/api/readings/line/count/meters';
+	const RAW_READINGS_BASE_ENDPOINT = '/api/readings/line/raw/meter';
 
 	mocha.describe('GET /api/readings/line/count/meters/:meter_ids', () => {
 
 		mocha.describe('URL Parameter Validation (meter_ids)', () => {
 			mocha.it('should accept valid comma-separated meter IDs', async () => {
 				const res = await chai.request(app)
-					.get('/api/readings/line/count/meters/1,2,3')
+					.get(`${LINE_COUNT_BASE_ENDPOINT}/1,2,3`)
 					.query({ timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z' });
 
 				// May return 200, 404, or 500 if meters/data don't exist
@@ -28,7 +28,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 			mocha.it('should reject extremely long meter_ids string (DoS prevention)', async () => {
 				const hugeMeterIds = '1,'.repeat(STRING_GENERAL_MAX_LENGTH + 1);
 				const res = await chai.request(app)
-					.get(`/api/readings/line/count/meters/${hugeMeterIds}`)
+					.get(`${LINE_COUNT_BASE_ENDPOINT}/${hugeMeterIds}`)
 					.query({ timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z' });
 
 				expect(res).to.have.status(HTTP_CODE.BAD_REQUEST);
@@ -36,7 +36,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 
 			mocha.it('should accept single meter ID', async () => {
 				const res = await chai.request(app)
-					.get('/api/readings/line/count/meters/1')
+					.get(`${LINE_COUNT_BASE_ENDPOINT}/1`)
 					.query({ timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z' });
 
 				// May return 200, 404, or 500 if meters/data don't exist
@@ -47,7 +47,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 		mocha.describe('Query Parameter Validation (timeInterval)', () => {
 			mocha.it('should require timeInterval parameter', async () => {
 				const res = await chai.request(app)
-					.get('/api/readings/line/count/meters/1');
+					.get(`${LINE_COUNT_BASE_ENDPOINT}/1`);
 
 				expect(res).to.have.status(HTTP_CODE.BAD_REQUEST);
 			});
@@ -55,7 +55,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 			mocha.it('should reject extremely long timeInterval string (DoS prevention)', async () => {
 				const hugeTimeInterval = 'x'.repeat(501);
 				const res = await chai.request(app)
-					.get('/api/readings/line/count/meters/1')
+					.get(`${LINE_COUNT_BASE_ENDPOINT}/1`)
 					.query({ timeInterval: hugeTimeInterval });
 
 				expect(res).to.have.status(HTTP_CODE.BAD_REQUEST);
@@ -63,7 +63,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 
 			mocha.it('should accept valid timeInterval format', async () => {
 				const res = await chai.request(app)
-					.get('/api/readings/line/count/meters/1')
+					.get(`${LINE_COUNT_BASE_ENDPOINT}/1`)
 					.query({ timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z' });
 
 				// May return 200, 404, or 500 if meters/data don't exist
@@ -72,7 +72,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 
 			mocha.it('should reject extra query parameters (parameter injection)', async () => {
 				const res = await chai.request(app)
-					.get('/api/readings/line/count/meters/1')
+					.get(`${LINE_COUNT_BASE_ENDPOINT}/1`)
 					.query({
 						timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z',
 						maliciousParam: 'injection_attempt'
@@ -86,7 +86,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 			mocha.it('should handle SQL injection attempts in meter_ids', async () => {
 				const sqlInjection = "1'; DROP TABLE readings; --";
 				const res = await chai.request(app)
-					.get(`/api/readings/line/count/meters/${encodeURIComponent(sqlInjection)}`)
+					.get(`${LINE_COUNT_BASE_ENDPOINT}/${encodeURIComponent(sqlInjection)}`)
 					.query({ timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z' });
 
 				// Should not crash server, may return 200, 400 or 500
@@ -96,7 +96,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 			mocha.it('should handle XSS attempts in timeInterval', async () => {
 				const xssAttempt = '<script>alert("xss")</script>';
 				const res = await chai.request(app)
-					.get('/api/readings/line/count/meters/1')
+					.get(`${LINE_COUNT_BASE_ENDPOINT}/1`)
 					.query({ timeInterval: xssAttempt });
 
 				// XSS attempt causes moment.js warning and 500 error
@@ -110,7 +110,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 		mocha.describe('URL Parameter Validation (meter_id)', () => {
 			mocha.it('should accept valid integer meter ID', async () => {
 				const res = await chai.request(app)
-					.get('/api/readings/line/raw/meter/1')
+					.get(`${RAW_READINGS_BASE_ENDPOINT}/1`)
 					.query({ timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z' });
 
 				// May return 400, 404, or 500 if meters/data don't exist
@@ -119,7 +119,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 
 			mocha.it('should reject non-integer meter_id', async () => {
 				const res = await chai.request(app)
-					.get('/api/readings/line/raw/meter/not_a_number')
+					.get(`${RAW_READINGS_BASE_ENDPOINT}/not_a_number`)
 					.query({ timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z' });
 
 				expect(res).to.have.status(HTTP_CODE.BAD_REQUEST);
@@ -127,7 +127,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 
 			mocha.it('should reject meter_id below minimum (1)', async () => {
 				const res = await chai.request(app)
-					.get('/api/readings/line/raw/meter/0')
+					.get(`${RAW_READINGS_BASE_ENDPOINT}/0`)
 					.query({ timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z' });
 
 				expect(res).to.have.status(HTTP_CODE.BAD_REQUEST);
@@ -135,7 +135,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 
 			mocha.it('should reject meter_id above maximum (2147483647)', async () => {
 				const res = await chai.request(app)
-					.get('/api/readings/line/raw/meter/2147483648')
+					.get(`${RAW_READINGS_BASE_ENDPOINT}/2147483648`)
 					.query({ timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z' });
 
 				expect(res).to.have.status(HTTP_CODE.BAD_REQUEST);
@@ -143,7 +143,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 
 			mocha.it('should reject negative meter_id', async () => {
 				const res = await chai.request(app)
-					.get('/api/readings/line/raw/meter/-1')
+					.get(`${RAW_READINGS_BASE_ENDPOINT}/-1`)
 					.query({ timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z' });
 
 				expect(res).to.have.status(HTTP_CODE.BAD_REQUEST);
@@ -151,7 +151,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 
 			mocha.it('should reject floating point meter_id', async () => {
 				const res = await chai.request(app)
-					.get('/api/readings/line/raw/meter/1.5')
+					.get(`${RAW_READINGS_BASE_ENDPOINT}/1.5`)
 					.query({ timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z' });
 
 				expect(res).to.have.status(HTTP_CODE.BAD_REQUEST);
@@ -161,7 +161,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 		mocha.describe('Query Parameter Validation (timeInterval)', () => {
 			mocha.it('should require timeInterval parameter', async () => {
 				const res = await chai.request(app)
-					.get('/api/readings/line/raw/meter/1');
+					.get(`${RAW_READINGS_BASE_ENDPOINT}/1`);
 
 				expect(res).to.have.status(HTTP_CODE.BAD_REQUEST);
 			});
@@ -169,7 +169,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 			mocha.it('should reject extremely long timeInterval string (DoS prevention)', async () => {
 				const hugeTimeInterval = 'x'.repeat(501);
 				const res = await chai.request(app)
-					.get('/api/readings/line/raw/meter/1')
+					.get(`${RAW_READINGS_BASE_ENDPOINT}/1`)
 					.query({ timeInterval: hugeTimeInterval });
 
 				expect(res).to.have.status(HTTP_CODE.BAD_REQUEST);
@@ -177,7 +177,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 
 			mocha.it('should accept valid timeInterval format', async () => {
 				const res = await chai.request(app)
-					.get('/api/readings/line/raw/meter/1')
+					.get(`${RAW_READINGS_BASE_ENDPOINT}/1`)
 					.query({ timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z' });
 
 				// May return 400, 404, or 500 if meters/data don't exist
@@ -186,7 +186,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 
 			mocha.it('should reject extra query parameters (parameter injection)', async () => {
 				const res = await chai.request(app)
-					.get('/api/readings/line/raw/meter/1')
+					.get(`${RAW_READINGS_BASE_ENDPOINT}/1`)
 					.query({
 						timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z',
 						maliciousParam: 'injection_attempt'
@@ -200,7 +200,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 			mocha.it('should handle SQL injection attempts in meter_id', async () => {
 				const sqlInjection = "1'; DROP TABLE readings; --";
 				const res = await chai.request(app)
-					.get(`/api/readings/line/raw/meter/${encodeURIComponent(sqlInjection)}`)
+					.get(`${RAW_READINGS_BASE_ENDPOINT}/${encodeURIComponent(sqlInjection)}`)
 					.query({ timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z' });
 
 				expect(res).to.have.status(HTTP_CODE.BAD_REQUEST);
@@ -209,7 +209,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 			mocha.it('should handle overflow attempts', async () => {
 				const overflowAttempt = '99999999999999999999999999999999';
 				const res = await chai.request(app)
-					.get(`/api/readings/line/raw/meter/${overflowAttempt}`)
+					.get(`${RAW_READINGS_BASE_ENDPOINT}/${overflowAttempt}`)
 					.query({ timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z' });
 
 				expect(res).to.have.status(HTTP_CODE.BAD_REQUEST);
@@ -218,7 +218,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 			mocha.it('should handle special characters in timeInterval', async () => {
 				const specialChars = '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z&cmd=ls';
 				const res = await chai.request(app)
-					.get('/api/readings/line/raw/meter/1')
+					.get(`${RAW_READINGS_BASE_ENDPOINT}/1`)
 					.query({ timeInterval: specialChars });
 
 				// Should be handled gracefully, not crash server
@@ -230,7 +230,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 	mocha.describe('Edge Cases and Error Handling', () => {
 		mocha.it('should handle empty meter_ids string', async () => {
 			const res = await chai.request(app)
-				.get('/api/readings/line/count/meters/')
+				.get(`${LINE_COUNT_BASE_ENDPOINT}/`)
 				.query({ timeInterval: '2020-01-01T00:00:00.000Z_2020-01-02T00:00:00.000Z' });
 
 			// Empty meter_ids may return 200 (empty result) or 404 depending on routing
@@ -239,7 +239,7 @@ mocha.describe('Readings Route Parameter Validation', () => {
 
 		mocha.it('should handle malformed timeInterval format', async () => {
 			const res = await chai.request(app)
-				.get('/api/readings/line/count/meters/1')
+				.get(`${LINE_COUNT_BASE_ENDPOINT}/1`)
 				.query({ timeInterval: 'invalid_format' });
 
 			// Should not crash - may return 400 or 500 depending on TimeInterval.fromString handling
