@@ -14,11 +14,11 @@ const { STRING_GENERAL_MAX_LENGTH, NUMERIC_ID_MAX_LENGTH } = require('../util/va
 const ISO_DURATION_REGEX = /^P(?!$)(\d+Y)?(\d+M)?(\d+D)?(T(\d+H)?(\d+M)?(\d+(\.\d+)?S)?)?$/;
 
 function isValidIsoDateTime(value) {
-	return typeof value === 'string' && moment.parseZone(value, moment.ISO_8601, true).isValid();
+	return moment.parseZone(value, moment.ISO_8601, true).isValid();
 }
 
 function isValidIsoDuration(value) {
-	return typeof value === 'string' && ISO_DURATION_REGEX.test(value);
+	return ISO_DURATION_REGEX.test(value);
 }
 
 function validateMeterCompareReadingsParams(params) {
