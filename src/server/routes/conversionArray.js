@@ -14,6 +14,26 @@ const router = express.Router();
  * Route for redoing Cik and/or refreshing reading views.
  */
 router.post('/refresh', adminAuthMiddleware('conversion refresh system data'), async (req, res) => {
+	const validParams = {
+		type: 'object',
+		additionalProperties: false,
+		properties: {
+			redoCik: {
+				type: 'boolean'
+			},
+			refreshReadingViews: {
+				type: 'boolean'
+			}
+		}
+	};
+
+	if (!validate(req.body, validParams).valid) {
+		res.sendStatus(400);
+		return;
+	}
+
+	// TODO: Add try/catch error handling to properly handle failures during Cik refresh
+	// or reading view refresh operations and return appropriate error responses.
 	if (req.body.redoCik) {
 		const conn = getConnection();
 		await redoCik(conn);
