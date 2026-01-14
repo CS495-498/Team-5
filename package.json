@@ -110,7 +110,7 @@
 	"devDependencies": {
 		"@redux-devtools/extension": "~3.2.5",
 		"@types/d3": "~7.4.3",
-		"@types/lodash": "~4.17.4",
+		"@types/lodash": "~4.17.23",
 		"@types/node": "~20.14.10",
 		"@types/plotly.js": "~2.29.2",
 		"@types/react": "~18.3.3",
