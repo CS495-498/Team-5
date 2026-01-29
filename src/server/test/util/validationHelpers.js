@@ -4,8 +4,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-// Original author is @maigbao, this file will be replaced by his once changes are merged
-
 const { expect } = require('chai');
 const chaiHttp = require('chai-http');
 const { chai, app } = require('../common');
