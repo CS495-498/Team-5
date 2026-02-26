@@ -6,7 +6,7 @@
 
 # Dockerfile for NodeJS application portion
 # Make sure the node version here matches .github/workflows/build.yml for the GitHub workflow.
-FROM node:18.17.1
+FROM node:18
 
 # Create the directory for the app
 RUN mkdir -p "/usr/src/app"
