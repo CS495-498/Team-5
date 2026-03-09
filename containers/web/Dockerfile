@@ -8,10 +8,13 @@
 # Make sure the node version here matches .github/workflows/build.yml for the GitHub workflow.
 FROM node:18.17.1
 
-# Create the directory for the app
-RUN mkdir -p "/usr/src/app"
+# Create the directory for the app and give ownership to the non-root node user
+RUN mkdir -p "/usr/src/app" && chown -R node:node "/usr/src/app"
 WORKDIR "/usr/src/app"
 
 # Mount the source code at this volume
 # Mount instead of copy allows the auto-reload to work
 VOLUME "/usr/src/app"
+
+# Run the container as a non-root user
+USER node
