@@ -47,6 +47,7 @@ router.post('/', credentialsRequestValidationMiddleware, async (req, res) => {
 			let isValid;
 			if (user === null) {
 				// User did not exist so return false.
+				await bcrypt.compare(req.body.password, user.passwordHash);
 				isValid = false;
 			} else {
 				isValid = await bcrypt.compare(req.body.password, user.passwordHash);
