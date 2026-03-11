@@ -21,7 +21,8 @@ const validLog = {
 	properties: {
 		message: {
 			type: 'string',
-			minLength: 1
+			minLength: 1,
+			maxLength: STRING_GENERAL_MAX_LENGTH
 		}
 	}
 };

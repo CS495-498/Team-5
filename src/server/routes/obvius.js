@@ -30,7 +30,13 @@ const { getConnection } = require('../db');
 const escapeHtml = require('escape-html');
 const { sanitizeForLog } = require('../util/sanitizeForLog');
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+	storage: multer.memoryStorage(),
+	limits: {
+		fileSize: 50 * 1024 * 1024, // 50MB limit
+		files: 10 // Max 10 files
+	}
+});
 const router = express.Router();
 
 router.use(upload.any(), middleware.lowercaseAllParamNames);
@@ -126,7 +132,6 @@ function verifyObviusUser(req, res, next) {
 
 	if (!password) {
 		failure(req, res, 'password parameter is required.');
-		return;
 	} else if (!username) {
 		failure(req, res, 'username parameter is required.');
 		return;
@@ -156,7 +161,8 @@ router.all('/', obviusLog, verifyObviusUser, async (req, res) => {
 	}
 
 	if (mode === obvius.mode.logfile_upload) {
-		if (!req.param('serialnumber', false)) {
+		const serialNumber = req.param('serialnumber', false);
+		if (!serialNumber) {
 			failure(req, res, 'Logfile Upload Requires Serial Number');
 			return;
 		}
@@ -217,7 +223,7 @@ router.all('/', obviusLog, verifyObviusUser, async (req, res) => {
 			failure(req, res, 'Config Upload Requires Serial Number');
 			return;
 		}
-		if (!req.param('modbusdevice', false)) {
+		if (!modbusDevice) {
 			failure(req, res, 'Config Upload Requires Modbus Device ID');
 			return;
 		}
