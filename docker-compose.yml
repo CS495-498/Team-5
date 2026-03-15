@@ -11,11 +11,11 @@ services:
     database:
         build: ./containers/database/
         environment:
-            # Custom PGDATA per recommendations from official Docker page
-            - PGDATA=/var/lib/postgresql/data/pgdata
-            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+             - PGDATA=/var/lib/postgresql/data/pgdata
+             - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+             - OED_DB_PASSWORD=${OED_DB_PASSWORD} 
         volumes:
-            - ./postgres-data:/var/lib/postgresql/data/pgdata
+             - ./postgres-data:/var/lib/postgresql/data/pgdata
         healthcheck:
             test: ["CMD-SHELL", "pg_isready -U postgres"]
             interval: 10s
