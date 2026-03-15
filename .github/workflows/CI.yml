@@ -25,6 +25,9 @@ jobs:
           docker compose build
 
       - name: Start services
+        env:
+          POSTGRES_PASSWORD: travisTest
+          OED_DB_PASSWORD: travisTest
         run: |
           docker compose up -d
 
@@ -46,5 +49,3 @@ jobs:
         if: always()
         run: |
           docker compose down -v
-
-
