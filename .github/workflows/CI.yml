@@ -42,6 +42,9 @@ jobs:
           done
 
       - name: Run OED CI tests
+        env:
+          POSTGRES_PASSWORD: travisTest
+          OED_DB_PASSWORD: travisTest
         run: |
           docker compose run --rm web npm run testsome src/server/test
 
