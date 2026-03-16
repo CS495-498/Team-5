@@ -29,9 +29,10 @@ async function gunzipToFileWithLimit(inputPath, outputDir, outputFilename, maxBy
       total += chunk.length;
       if (total > maxBytes) {
         // Stop everything immediately
+        const err = new Error(`Decompressed size exceeds limit (max ${maxBytes} bytes)`);
         source.destroy();
-        gunzip.destroy(new Error("Decompressed size exceeds limit"));
         dest.destroy();
+        gunzip.destroy(err);
       }
     });
 
