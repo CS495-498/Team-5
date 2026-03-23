@@ -22,10 +22,10 @@ Open Energy Dashboard – Penetration Test Final Report (July 25, 2024)
 
 ## Summary
 - Total Findings: 19  
-- ✅ Done: 12 
-- 🟡 In Progress: 5
+- ✅ Done: 13
+- 🟡 In Progress: 6
 - 🔴 Not Started: 0
-- ⚠️ Design Only: 1
+- ⚠️ Design Only: 0
 
 Note: “Upstream OED PR Evidence” refers to pull requests in the
 official OpenEnergyDashboard/OED repository when applicable.
@@ -44,7 +44,7 @@ official OpenEnergyDashboard/OED repository when applicable.
 | 8 | Insufficient Input Validation | Medium | #74, #106 | — | ✅ Done | Brian | Server-side validation implemented across multiple routes to prevent malformed input |
 | 9 | File Upload Denial of Service | Medium | #75, #88 | — | 🟡 In Progress | Krista | Upload size restrictions and validation improvements under development |
 | 10 | Insecure Password Authentication | Minimal | #76, #108 | — | 🟡 In Progress | Zach | Authentication improvements and security validation ongoing |
-| 11 | Insufficient Session Expiration | Low | Design PR #144 | — | 🟡 In Progress | Oye | Secure session expiration model designed; implementation planned for upcoming sprint |
+| 11 | Insufficient Session Expiration | Low | Design PR #144, Team-5 PR #169 | — | ✅ Done | Oye | Implemented server-side session invalidation using `token_invalid_before` timestamp and JWT `iat` comparison. Logout now invalidates all previously issued tokens, preventing replay attacks. |
 | 12 | Insufficient Brute Force Protection | Low | #78, PR #143 | — | ✅ Done | Zach | Login rate limiting implemented to mitigate brute-force attacks |
 | 13 | Valid User Enumeration | Minimal | #79, #111 | — | ✅ Done | Andrew | Login response timing adjusted to prevent enumeration of valid users |
 | 14 | Information Disclosure | Minimal | #80, #93 | — | ✅ Done | Zack | Improvements made to prevent sensitive information leakage |
