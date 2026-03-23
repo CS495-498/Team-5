@@ -11,6 +11,7 @@ const { adminAuthMiddleware } = require('./authenticator');
 const LogMsg = require('../models/LogMsg');
 const { getConnection } = require('../db');
 const { TimeInterval } = require('../../common/TimeInterval');
+const { sanitizeForLog } = require('../util/sanitizeForLog');
 
 const router = express.Router();
 
@@ -50,7 +51,8 @@ const validLogMsg = {
 router.post('/info', adminAuthMiddleware('create info log'), async (req, res) => {
 	const validationResult = validate(req.body, validLog);
 	if (validationResult.valid) {
-		log.info(req.body.message);
+		const safeMessage = sanitizeForLog(req.body.message);
+		log.info(safeMessage);
 		res.sendStatus(200);
 	} else {
 		log.error('invalid input from client logger');
@@ -61,7 +63,8 @@ router.post('/info', adminAuthMiddleware('create info log'), async (req, res) =>
 router.post('/warn', adminAuthMiddleware('create warn log'), async (req, res) => {
 	const validationResult = validate(req.body, validLog);
 	if (validationResult.valid) {
-		log.warn(req.body.message);
+		const safeMessage = sanitizeForLog(req.body.message);
+		log.warn(safeMessage);
 		res.sendStatus(200);
 	} else {
 		log.error('invalid input from client logger');
@@ -72,7 +75,8 @@ router.post('/warn', adminAuthMiddleware('create warn log'), async (req, res) =>
 router.post('/error', adminAuthMiddleware('create error log'), async (req, res) => {
 	const validationResult = validate(req.body, validLog);
 	if (validationResult.valid) {
-		log.error(req.body.message);
+		const safeMessage = sanitizeForLog(req.body.message);
+		log.error(safeMessage);
 		res.sendStatus(200);
 	} else {
 		log.error('invalid input from client logger');
@@ -96,7 +100,8 @@ router.get('/logsmsg/getLogsByDateRangeAndType', adminAuthMiddleware('view logs'
 			);
 			res.json(rows);
 		} catch (err) {
-			log.error(`Failed to fetch logs filtered by date range and type: ${err}`);
+			const safeError = sanitizeForLog(err.message);
+			log.error(`Failed to fetch logs filtered by date range and type: ${safeError}`);
 			res.sendStatus(500);
 		}
 	}

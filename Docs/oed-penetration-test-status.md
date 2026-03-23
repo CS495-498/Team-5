@@ -1,8 +1,9 @@
 # OED Penetration Test – Status Tracking
 
 ## Purpose
-This document tracks the findings from the Open Energy Dashboard (OED)
-penetration testing report and maps them to current GitHub work.
+This document tracks findings from the Open Energy Dashboard (OED)
+penetration testing report and maps them to current GitHub issues,
+pull requests, and implementation status.
 
 The goal is to:
 - Show what has already been addressed
@@ -20,32 +21,35 @@ Open Energy Dashboard – Penetration Test Final Report (July 25, 2024)
 - ⚠️ **Design / Discussion Only** — discussed but not implemented
 
 ## Summary
-- Total Findings: 19
-- ✅ Done: 2
-- 🟡 In Progress: 14
+- Total Findings: 19  
+- ✅ Done: 12 
+- 🟡 In Progress: 5
 - 🔴 Not Started: 0
-- ⚠️ Design Only: 3
+- ⚠️ Design Only: 1
+
+Note: “Upstream OED PR Evidence” refers to pull requests in the
+official OpenEnergyDashboard/OED repository when applicable.
 
 ## Penetration Test Findings
 
-| Problem # | Title | Severity | Related GitHub Issue(s) | Current Status | Notes / Remaining Work | Priority |
-|----------|-------|----------|--------------------------|---------------|------------------------|----------|
-| 1 | Insufficient Access Controls | Critical | Issue #118 (and related access-control discussions) | 🟡 In Progress | Routes documented; access control enforcement and validation still incomplete  | P1 |
-| 2 | Insecure Default Configuration | High | Dependency update PR: #139 (dotenv upgrade) (supporting, not a fix)  | ⚠️ Design | Secrets moved to environment variables, but missing validation and silent failure if .env is absent allows insecure defaults |  P1 |
-| 3 | Cross-Site Scripting (XSS) | Medium | Issue #69 (fix) + Issue #98 (test/validation) | ✅ Done | Fix and validation completed and issues closed in GitHub. | P2 |
-| 4 | Insecure Docker Configuration | Medium |  #70, #99, #29 |  🟡 In Progress | Some Docker hardening work completed (separate Dockerfile), but key security issues (root user, writable files, resource limits, secrets handling) remain open and require fixes and validation  | P1 |
-| 5 | Hard-Coded Database Credentials | Medium | #71, #30, #101 | 🟡 In Progress | Tracking, review/design, and test/validation issues exist. Need to confirm removal of all hard-coded credentials, validate DB user documentation, and verify secure configuration via testing. | P2 |
-| 6 | Missing Content Security Policy | Medium | Issues #72, #102, #31 | ✅ Done | CSP implemented and validated; design, implementation, and testing completed | P2 |
-| 7 | Known Vulnerabilities in Software Components | Medium | Design docs in repo; related dependency discussions | ⚠️ Design / Discussion Only | Vulnerable components identified and documented, but no full implementation or validation completed | P2 |
-| 8 | Insufficient Input Validation | Medium | Issue #74 (main), #106 (test/validate) | 🟡 In Progress | Input validation gaps identified; testing and enforcement still ongoing | P2 |
-| 9 | File Upload Denial of Service | Medium | Issue #75 (main), #88 (design), #107 (test/validate) | 🟡 In Progress | Upload size/type limits and DoS protections still under design and validation | P2 |
-| 10 | Insecure Password Authentication | Minimal | Issue #76 (main), #89 (design), #108 (test/validate) | 🟡 In Progress | Password handling improvements under design and validation; fixes not yet merged | P1 |
-| 11 | Insufficient Session Expiration | low | Design doc + related GitHub issue(s) | ⚠️ Design Only | Session expiration strategy documented, but no implementation or validation merged | P1 |
-| 12 | Insufficient Brute Force Protection | Low | Issues #78, #110; PR #143 | 🟡 In Progress | 🟡 In Progress (Implementation merged, validation pending) | P1 |
-| 13 | Valid User Enumeration | Minimal | Issues #79, #111, #92 | 🟡 In Progress | Design and validation issues are open; no implementation merged yet | P1 |
-| 14 | Information Disclosure | Minimal | Issues #80, #93, #112 | 🟡 In Progress | Design and validation issues exist; no implementation PR merged yet | P1 |
-| 15 | Clickjacking (UI Redress) | Low| Issue #81, Design #95, Test/Validate #113 | 🟡 In Progress | Issues exist for implementation + design + validation. Implementation not merged/verified yet. Add/confirm anti-clickjacking headers (e.g., frame-ancestors / X-Frame-Options) and validate behavior. | P1 |
-| 16 | Log Injection | Minimal | Issue #82, Design #97, Test #114 | 🟡 In Progress | Design and validation tasks exist, but no confirmed implementation merged yet. Logging inputs still need sanitization/validation to prevent injection attacks. | P1 |
-| 17 | Session Tokens Stored in Local Storage | Low | Issue #83, Design #100, Test #115 | 🟡 In Progress | Design and validation tasks exist, but session tokens are still stored in local storage. Tokens should be moved to secure, HttpOnly cookies to reduce XSS exposure. | P1 |
-| 18 | Incorrect / Inconsistent HTTP Response Codes | Minimal | Issue #84, Design #103, Test #116 | 🟡 In Progress | Issues identified where HTTP response codes may leak information or be inconsistent. Design and validation tasks exist, but standardized response handling has not yet been fully implemented. | P2 |
-| 19 | Business Logic Issues | Minimal | Issue #85, Design #105, Test #117 | 🟡 In Progress | Business logic flaws identified in application workflows. Design and validation tasks exist, but corrective logic changes have not yet been fully implemented or verified. | P1 |
+| Problem # | Title | Severity | Team-5 Issue(s) | Upstream OED PR Evidence | Current Status | Owner | Notes / Remaining Work |
+|-----------|------|----------|----------------|---------------------------|---------------|------|-------------------------|
+| 1 | Insufficient Access Controls | Critical | Issue #118 | — | ✅ Done | Andrew | Access control enforcement implemented and validated through automated route authentication tests |
+| 2 | Insecure Default Configuration | High | Team-5 tracking | OED PR #1554 | ✅ Done | Zack | Secure configuration changes implemented and submitted upstream for review |
+| 3 | Cross-Site Scripting (XSS) | Medium | #69, #98 | OED PR #1544 | ✅ Done | Zach | XSS protections implemented and validated |
+| 4 | Insecure Docker Configuration | Medium | #70, #99, PR #165 | — | ✅ Done | Oye | Dockerfile updated so web container runs as non-root `node` user to reduce privilege escalation risk |
+| 5 | Hard-Coded Database Credentials | Medium | #71, #101, PR #168 | — | ✅ Done | Oye | Hard-coded credentials removed and replaced with environment-variable based secret injection. Docker initialization and CI pipeline updated to securely handle credentials. |
+| 6 | Missing Content Security Policy | Medium | #72, #102 | OED PR #1567 | ✅ Done | Brian | Content Security Policy headers implemented and submitted for upstream review |
+| 7 | Known Vulnerabilities in Software Components | Medium | Design docs | — | ✅ Done | Oye, Andrew | Patch management workflow created to track and update vulnerable dependencies |
+| 8 | Insufficient Input Validation | Medium | #74, #106 | — | ✅ Done | Brian | Server-side validation implemented across multiple routes to prevent malformed input |
+| 9 | File Upload Denial of Service | Medium | #75, #88 | — | 🟡 In Progress | Krista | Upload size restrictions and validation improvements under development |
+| 10 | Insecure Password Authentication | Minimal | #76, #108 | — | 🟡 In Progress | Zach | Authentication improvements and security validation ongoing |
+| 11 | Insufficient Session Expiration | Low | Design PR #144 | — | 🟡 In Progress | Oye | Secure session expiration model designed; implementation planned for upcoming sprint |
+| 12 | Insufficient Brute Force Protection | Low | #78, PR #143 | — | ✅ Done | Zach | Login rate limiting implemented to mitigate brute-force attacks |
+| 13 | Valid User Enumeration | Minimal | #79, #111 | — | ✅ Done | Andrew | Login response timing adjusted to prevent enumeration of valid users |
+| 14 | Information Disclosure | Minimal | #80, #93 | — | ✅ Done | Zack | Improvements made to prevent sensitive information leakage |
+| 15 | Clickjacking (UI Redress) | Low | #81, #113 | — | 🟡 In Progress | Brian | Security headers being implemented to prevent UI redress attacks |
+| 16 | Log Injection | Minimal | #82, #114 | — | ✅ Done | Zach | Log sanitization implemented to prevent log injection |
+| 17 | Session Tokens Stored in Local Storage | Low | #83, #115 | — | 🟡 In Progress | Krista | Migrating authentication tokens from local storage to secure cookies |
+| 18 | Incorrect HTTP Response Codes | Minimal | #84, #116 | — | 🟡 In Progress | Andrew | Standardizing HTTP status codes returned by backend routes |
+| 19 | Business Logic Issues | Minimal | #85, #117 | — | 🟡 In Progress | Brian | Business logic validation and testing ongoing |

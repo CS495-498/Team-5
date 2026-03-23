@@ -77,6 +77,8 @@ services:
             database:
               # We need the database and it has to be ready for work (see healthcheck above).
               condition: service_healthy
+            loki:
+                condition: service_started
         healthcheck:
             test: ["CMD", "curl", "-f", "http://localhost:3000"]
             interval: 10s
@@ -111,4 +113,27 @@ services:
         /bin/sh -c "
         rm -f /tmp/.X99-lock &&
         Xvfb :99 -screen 0 1024x768x16"
-        
+
+    loki:
+        image: grafana/loki:2.9.0
+        ports:
+            - "3100:3100"
+        command: -config.file=/etc/loki/loki-config.yml
+        volumes:
+            - ./loki-config.yml:/etc/loki/loki-config.yml
+            - loki-data:/loki
+    grafana:
+        image: grafana/grafana
+        container_name: grafana
+        ports:
+            - "4000:3000"
+        restart: unless-stopped
+        volumes:
+            - grafana-storage:/var/lib/grafana
+        depends_on:
+            - loki
+
+
+volumes:
+    loki-data: 
+    grafana-storage:

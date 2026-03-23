@@ -28,6 +28,7 @@ const gunzipToFileWithLimit = require("../util/gunzipToFileWithLimit");
 
 const MAX_COMPRESSED_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB max upload
 const MAX_DECOMPRESSED_BYTES = 50 * 1024 * 1024;      // 50 MB max after gunzip
+const { sanitizeForLog } = require('../util/sanitizeForLog');
 
 /** Middleware validation */
 const { normalizeBoolean, validateMetersCsvUploadParams, validateReadingsCsvUploadParams } = require('../services/csvPipeline/validateCsvUploadParams');
@@ -171,12 +172,13 @@ router.post('/readings', validateReadingsCsvUploadParams, async (req, res) => {
 	const isGzip = normalizeBoolean(req.body.gzip);
 	const isRefreshReadings = normalizeBoolean(req.body.refreshReadings);
 	const uploadedFilepath = req.file.path;
+	const safeUploadedFilepath = sanitizeForLog(uploadedFilepath);
 	let csvFilepath;
 	let isAllReadingsOk;
 	let msgTotal;
 	try {
-		log.info(`The uploaded file ${uploadedFilepath} was created to upload readings csv data`);
-		const dir = `${__dirname}/../tmp/uploads/csvPipeline`;
+		log.info(`The uploaded file ${safeUploadedFilepath} was created to upload readings csv data`);
+		let fileBuffer = await fs.readFile(uploadedFilepath);
 		// Unzip uploaded file and save file to disk if the user 
 		// has indicated that the file is (g)zipped.
 		if (isGzip) {
@@ -184,14 +186,24 @@ router.post('/readings', validateReadingsCsvUploadParams, async (req, res) => {
 				`meters-${moment().format('YYYY-MM-DD_HH:mm:ss.SSS')}-${crypto.randomBytes(2).toString('hex')}.csv`;
 			
 			// We expect this directory to have been created by this stage of the pipeline.
-			
-			csvFilepath = await gunzipToFileWithLimit(
-				uploadedFilepath,
-				dir,
-				outName,
-				MAX_DECOMPRESSED_BYTES
-			);
-			log.info(`The unzipped file ${csvFilepath} was created to upload readings csv data`);
+const dir = `${__dirname}/../tmp/uploads/csvPipeline`;
+
+if (isGzip) {
+  const outName =
+    `readings-${moment().format('YYYY-MM-DD_HH:mm:ss.SSS')}-${crypto.randomBytes(2).toString('hex')}.csv`;
+
+  csvFilepath = await gunzipToFileWithLimit(
+    uploadedFilepath,
+    dir,
+    outName,
+    MAX_DECOMPRESSED_BYTES
+  );
+} else {
+  csvFilepath = await saveCsv(fileBuffer, 'readings', dir);
+}
+
+const safeCsvFilepath = sanitizeForLog(csvFilepath);
+log.info(`The unzipped file ${safeCsvFilepath} was created to upload readings csv data`);
 		} else {
 			csvFilepath = uploadedFilepath;
 		}
@@ -207,18 +219,20 @@ router.post('/readings', validateReadingsCsvUploadParams, async (req, res) => {
 	} finally {
 		// Clean up files
 		fs.unlink(uploadedFilepath) // Delete the uploaded file.
-			.then(() => log.info(`Successfully deleted the uploaded file ${uploadedFilepath}.`))
+			.then(() => log.info(`Successfully deleted the uploaded file ${safeUploadedFilepath}.`))
 			.catch(err => {
-				log.error(`Failed to remove the file ${uploadedFilepath}.`, err);
+				log.error(`Failed to remove the file ${safeUploadedFilepath}.`, err);
 			});
 
 		// If user has indicated that the file is (g)zipped, then we also have to remove the unzipped file.
-		if (isGzip && csvFilepath && csvFilepath !== uploadedFilepath) {
+if (isGzip && csvFilepath && csvFilepath !== uploadedFilepath) {
+  const safeCsvFilepath = sanitizeForLog(csvFilepath);
+
 			// Delete the unzipped csv file if it exists.
 			fs.unlink(csvFilepath)
-				.then(() => log.info(`Successfully deleted the unzipped csv file ${csvFilepath}.`))
+				.then(() => log.info(`Successfully deleted the unzipped csv file ${safeCsvFilepath}.`))
 				.catch(err => {
-					log.error(`Failed to remove the file ${csvFilepath}.`, err);
+					log.error(`Failed to remove the file ${safeCsvFilepath}.`, err);
 				});
 		}
 	}
