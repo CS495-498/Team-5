@@ -22,8 +22,8 @@ Open Energy Dashboard – Penetration Test Final Report (July 25, 2024)
 
 ## Summary
 - Total Findings: 19  
-- ✅ Done: 13
-- 🟡 In Progress: 6
+- ✅ Done: 14
+- 🟡 In Progress: 5
 - 🔴 Not Started: 0
 - ⚠️ Design Only: 0
 
@@ -48,7 +48,7 @@ official OpenEnergyDashboard/OED repository when applicable.
 | 12 | Insufficient Brute Force Protection | Low | #78, PR #143 | — | ✅ Done | Zach | Login rate limiting implemented to mitigate brute-force attacks |
 | 13 | Valid User Enumeration | Minimal | #79, #111 | — | ✅ Done | Andrew | Login response timing adjusted to prevent enumeration of valid users |
 | 14 | Information Disclosure | Minimal | #80, #93 | — | ✅ Done | Zack | Improvements made to prevent sensitive information leakage |
-| 15 | Clickjacking (UI Redress) | Low | #81, #113 | — | 🟡 In Progress | Brian | Security headers being implemented to prevent UI redress attacks |
+| 15 | Clickjacking (UI Redress) | Low | #81, #113 | — | ✅ Done | Oye | Clickjacking protection implemented using CSP frame-ancestors and X-Frame-Options headers. |
 | 16 | Log Injection | Minimal | #82, #114 | — | ✅ Done | Zach | Log sanitization implemented to prevent log injection |
 | 17 | Session Tokens Stored in Local Storage | Low | #83, #115 | — | 🟡 In Progress | Krista | Migrating authentication tokens from local storage to secure cookies |
 | 18 | Incorrect HTTP Response Codes | Minimal | #84, #116 | — | 🟡 In Progress | Andrew | Standardizing HTTP status codes returned by backend routes |
