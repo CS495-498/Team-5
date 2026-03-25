@@ -152,7 +152,7 @@ router.get('/:meter_id', optionalAuthMiddleware, async (req, res) => {
 			}
 		} catch (err) {
 			log.error(`Error while performing GET specific meter by id query: ${err}`, err);
-			res.sendStatus(500);
+			res.sendStatus(400);
 		}
 	}
 });
@@ -314,7 +314,7 @@ router.post('/edit', adminAuthMiddleware('edit meters'), async (req, res) => {
 		} catch (err) {
 			const safeDetail = sanitizeForLog(err?.detaul?.toString() || ``)
 			log.error(`Error while inserting new meter with detail ${safeDetail}`, err);
-			failure(res, 500, err.toString() + ' with detail ' + err['detail']);
+			failure(res, 400, err.toString() + ' with detail ' + err['detail']);
 		}
 	}
 });
