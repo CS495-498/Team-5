@@ -124,7 +124,7 @@ router.post('/create', adminAuthMiddleware('create a user.'), async (req, res) =
 			}
 		} catch (error) {
 			log.error(`Error while performing POST request to create user: ${error}`, error);
-			res.status(500).send({ message: 'Internal Server Error', error: error });
+			res.status(400).send({ message: 'Internal Server Error', error: error });
 		}
 	}
 });
