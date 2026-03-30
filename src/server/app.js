@@ -19,7 +19,6 @@ const readings = require('./routes/readings');
 const meters = require('./routes/meters');
 const preferences = require('./routes/preferences');
 const login = require('./routes/login');
-const logout = require('./routes/logout');
 const verification = require('./routes/verification');
 const groups = require('./routes/groups');
 const version = require('./routes/version');
@@ -153,7 +152,6 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/login', login);
-app.use('/api/logout', logout);
 app.use('/api/users', users);
 app.use('/api/meters', meters);
 app.use('/api/readings', readings);
