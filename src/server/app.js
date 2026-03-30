@@ -144,13 +144,6 @@ app.use(favicon(path.join(__dirname, '..', 'client', 'public', 'favicon.ico')));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
 
-// Clickjacking protection headers
-app.use((req, res, next) => {
-	res.setHeader('Content-Security-Policy', "frame-ancestors 'none';");
-	res.setHeader('X-Frame-Options', 'DENY');
-	next();
-});
-
 app.use('/api/login', login);
 app.use('/api/users', users);
 app.use('/api/meters', meters);
@@ -179,6 +172,7 @@ router.get('*', (req, res) => {
 	fs.readFile(path.resolve(__dirname, '..', 'client', 'index.html'), (err, html) => {
 		const subdir = config.subdir || '/';
 		let htmlPlusData = html.toString().replace('SUBDIR', subdir);
+		res.setHeader('Content-Security-Policy', "frame-ancestors 'self';");
 		res.send(htmlPlusData);
 	});
 });
