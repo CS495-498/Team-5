@@ -38,9 +38,19 @@ authMiddleware = (req, res, next) => {
 			} else {
 				try {
 					const conn = getConnection();
-					await User.getByID(decoded.data, conn); // checks if user exists in the database in case it was deleted
-					req.decoded = decoded;
-					next();
+                    const user = await User.getByID(decoded.data, conn); // checks if user exists in the database in case it was deleted
+
+                    const tokenIssuedAt = decoded.iat;
+                    const invalidBefore = user.tokenInvalidBefore
+                    	? Math.floor(new Date(user.tokenInvalidBefore).getTime() / 1000)
+                    	: 0;
+
+                    if (tokenIssuedAt < invalidBefore) {
+                    	return res.status(401).json({ success: false, message: 'Token invalidated.' });
+                    }
+
+                    req.decoded = decoded;
+                    next();
 				} catch (error) {
 					res.status(401).json({ success: false, message: 'User does not exist in database.' });
 				}
@@ -55,7 +65,7 @@ authMiddleware = (req, res, next) => {
 };
 
 /**
- * Middleware that checks the request body for the username and password parameters. If the body contains the username and password parameters, then next 
+ * Middleware that checks the request body for the username and password parameters. If the body contains the username and password parameters, then next
  * is executed. Otherwise, the server responds with a 400 error.
  */
 function credentialsRequestValidationMiddleware(req, res, next) {
@@ -83,9 +93,9 @@ function credentialsRequestValidationMiddleware(req, res, next) {
 
 /**
  * Verifies the username and password of a user.
- * @param {string} username 
- * @param {string} password 
- * @param {boolean} returnUser 
+ * @param {string} username
+ * @param {string} password
+ * @param {boolean} returnUser
  * @returns true if the user exists in the database. False otherwise. Returns the user itself if returnUser is set to true and user is verified.
  */
 async function verifyCredentials(username, password, returnUser = false) {
@@ -107,8 +117,8 @@ async function verifyCredentials(username, password, returnUser = false) {
 
 /**
  * Returns middleware that verifies the requested token and only proceeds if the requestor is a particular user role or is Admin.
- * @param {string} role 
- * @param action 
+ * @param {string} role
+ * @param action
  */
 function roleTokenAuthMiddleware(role, action) {
 	return function (req, res, next) {
@@ -201,21 +211,36 @@ optionalAuthMiddleware = (req, res, next) => {
 	if (!validate(token, validParams).valid) {
 		next();
 	} else if (token) {
-		jwt.verify(token, secretToken, (err, decoded) => {
-			if (err) {
-				// do nothing. Could log here if need be
-			} else {
-				req.decoded = decoded;
-				req.hasValidAuthToken = true;
-			}
-			next();
-		});
+		jwt.verify(token, secretToken, async (err, decoded) => {
+        	if (err) {
+        		// do nothing. Could log here if need be
+        	} else {
+        		try {
+        			const conn = getConnection();
+        			const user = await User.getByID(decoded.data, conn);
+
+        			const tokenIssuedAt = decoded.iat;
+        			const invalidBefore = user.tokenInvalidBefore
+        				? Math.floor(new Date(user.tokenInvalidBefore).getTime() / 1000)
+        				: 0;
+
+        			if (tokenIssuedAt >= invalidBefore) {
+        				req.decoded = decoded;
+        				req.hasValidAuthToken = true;
+        			}
+        		} catch (error) {
+        			// leave token invalid if user lookup fails
+        		}
+        	}
+        	next();
+        });
 	} else {
 		next();
 	}
 };
 
 module.exports = {
+	authMiddleware,
 	adminAuthMiddleware,
 	csvAuthMiddleware,
 	exportAuthMiddleware,
