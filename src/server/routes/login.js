@@ -53,7 +53,18 @@ router.post('/', credentialsRequestValidationMiddleware, async (req, res) => {
 			}
 			if (isValid) {
 				const token = jwt.sign({ data: user.id }, secretToken, { expiresIn: 86400 });
-				res.json({ token: token, username: user.username, role: user.role });
+
+				res.cookie('oedSession', token, {
+    				httpOnly: true,
+    				secure: true,
+    				sameSite: 'Lax'
+				});
+
+				res.json({
+    				username: user.username,
+    				role: user.role
+				});
+
 			} else {
 				throw new Error('Unauthorized password');
 			}

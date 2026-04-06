@@ -32,6 +32,7 @@ const conversionArray = require('./routes/conversionArray');
 const units = require('./routes/units');
 const conversions = require('./routes/conversions');
 const ciks = require('./routes/ciks');
+const cookieParser = require('cookie-parser');
 
 // Limit the rate of overall requests to OED
 // Note that the rate limit may make the automatic test return the value of 429. In that case, the limiters below need to be increased.
@@ -122,6 +123,7 @@ if (log.level !== LogLevel.SILENT) {
 	app.use(logger('dev'));
 }
 
+app.use(cookieParser());
 app.use(favicon(path.join(__dirname, '..', 'client', 'public', 'favicon.ico')));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));

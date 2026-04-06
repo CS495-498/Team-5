@@ -3,40 +3,38 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /**
- * Get Token from local storage
- * @returns if found token, return it, otherwise, throw error
+ * Frontend no longer stores authentication tokens.
+ * Authentication is handled via HttpOnly cookies set by the backend.
  */
-export function getToken(): string {
-	const token = localStorage.getItem('token');
-	if (token === null) {
-		throw Error('No token found');
-	}
-	return token;
-}
+
 
 /**
- * Check if there is a Token in local storage
- * @returns If there is a Token, return True; otherwise return false
+ * Throws an error because frontend-accessible authentication tokens are disabled.
+ * Authentication is handled exclusively via HttpOnly cookies.
+ * @throws Error Always thrown to prevent JavaScript access to session tokens.
+ */
+export function getToken(): never {
+	throw new Error('Frontend token access is disabled; authentication is cookie-based');
+}
+
+
+/**
+ * @returns false because tokens are no longer stored client-side
  */
 export function hasToken(): boolean {
-	try {
-		getToken();
-	} catch (e) {
-		return false;
-	}
-	return true;
+	return false;
 }
 
 /**
- * Remove 'token' from local storage
+ * No-op: frontend no longer deletes tokens
  */
 export function deleteToken(): void {
-	localStorage.removeItem('token');
+	// intentionally empty
 }
 
 /**
- * @param token the token string to save to local storage for returning users.
+ * No-op: frontend no longer stores tokens
  */
-export function setToken(token: string): void {
-	localStorage.setItem('token', token);
+export function setToken(): void {
+	// intentionally empty
 }
