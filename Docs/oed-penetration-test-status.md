@@ -22,8 +22,8 @@ Open Energy Dashboard – Penetration Test Final Report (July 25, 2024)
 
 ## Summary
 - Total Findings: 19  
-- ✅ Done: 15
-- 🟡 In Progress: 4
+- ✅ Done: 16
+- 🟡 In Progress: 3
 - 🔴 Not Started: 0
 - ⚠️ Design Only: 0
 
