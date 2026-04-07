@@ -52,4 +52,4 @@ official OpenEnergyDashboard/OED repository when applicable.
 | 16 | Log Injection | Minimal | #82, #114 | — | ✅ Done | Zach | Log sanitization implemented to prevent log injection |
 | 17 | Session Tokens Stored in Local Storage | Low | #83, #115 | — | 🟡 In Progress | Krista | Migrating authentication tokens from local storage to secure cookies |
 | 18 | Incorrect HTTP Response Codes | Minimal | #84, #116 | — | 🟡 In Progress | Andrew | Standardizing HTTP status codes returned by backend routes |
-| 19 | Business Logic Issues | Minimal | #85, #117 | — | 🟡 In Progress | Brian | Business logic validation and testing ongoing |
+| 19 | Business Logic Issues | Minimal | #85, #117 | — | ✅ Done | Brian | Business logic validation and testing ongoing |
