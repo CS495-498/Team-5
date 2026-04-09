@@ -50,27 +50,27 @@ const generalLimiter = rateLimit({
 				You have been rate limited by your OED site.
 			</h1>
 			<h2 style ='text-align:center'>
-				We suggest you try these in this order: 
+				We suggest you try these in this order:
 			</h2>
-			<h2 
+			<h2
 				style='text-align:center'>
 			</h2>
-			<div> 
-				<ol style = "text-align: center; list-style-position: inside;"> 
+			<div>
+				<ol style = "text-align: center; list-style-position: inside;">
 					<li>
 						Click the 'Refresh this page' button below to try again.
 					</li>
-					<li> 
+					<li>
 						If you keep returning to this page wait longer and click 'Refresh this page' button.
-					</li> 
+					</li>
 					<li>
 						Contact your site to find why the rate limit is denying access to the OED site.
-					</li> 
-				</ol>  
+					</li>
+				</ol>
 			</div>
 			<h3 style='text-align:center'>
-				<button onClick='window.location.reload();'> 
-					Refresh this page 
+				<button onClick='window.location.reload();'>
+					Refresh this page
 				</button>
 			</h3>
 		`
@@ -172,6 +172,7 @@ router.get('*', (req, res) => {
 	fs.readFile(path.resolve(__dirname, '..', 'client', 'index.html'), (err, html) => {
 		const subdir = config.subdir || '/';
 		let htmlPlusData = html.toString().replace('SUBDIR', subdir);
+		res.setHeader('Content-Security-Policy', "frame-ancestors 'self';");
 		res.send(htmlPlusData);
 	});
 });
