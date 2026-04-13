@@ -17,6 +17,8 @@ const { MeterTimeSortTypesJS } = require('../services/csvPipeline/validateCsvUpl
 const merge = require('lodash/merge');
 const { failure, success } = require('./response');
 const { updateNonNullExpression } = require('typescript');
+const { sanitize } = require('dompurify');
+const { sanitizeForLog } = require('../util/sanitizeForLog');
 
 const router = express.Router();
 
@@ -310,7 +312,8 @@ router.post('/edit', adminAuthMiddleware('edit meters'), async (req, res) => {
 			// Need to format since some properties have different names than come from DB.
 			res.json(formatMeterForResponse(meter, true));
 		} catch (err) {
-			log.error(`Error while editing a meter with detail "${err['detail']}"`, err);
+			const safeDetail = sanitizeForLog(err?.detaul?.toString() || ``)
+			log.error(`Error while inserting new meter with detail ${safeDetail}`, err);
 			failure(res, 500, err.toString() + ' with detail ' + err['detail']);
 		}
 	}
@@ -370,7 +373,8 @@ router.post('/addMeter', adminAuthMiddleware('add meter'), async (req, res) => {
 			// Need to format since some properties have different names than come from DB.
 			res.json(formatMeterForResponse(newMeter, true));
 		} catch (err) {
-			log.error(`Error while inserting new meter with detail "${err['detail']}"`, err);
+			const safeDetail = sanitizeForLog(err?.detaul?.toString() || ``)
+			log.error(`Error while inserting new meter with detail ${safeDetail}`, err);
 			failure(res, 500, err.toString() + ' with detail ' + err['detail']);
 		}
 	}
