@@ -25,6 +25,9 @@ jobs:
           docker compose build
 
       - name: Start services
+        env:
+          POSTGRES_PASSWORD: travisTest
+          OED_DB_PASSWORD: travisTest
         run: |
           docker compose up -d
 
@@ -39,6 +42,9 @@ jobs:
           done
 
       - name: Run OED CI tests
+        env:
+          POSTGRES_PASSWORD: travisTest
+          OED_DB_PASSWORD: travisTest
         run: |
           docker compose run --rm web npm run testsome src/server/test
 
@@ -46,5 +52,3 @@ jobs:
         if: always()
         run: |
           docker compose down -v
-
-
