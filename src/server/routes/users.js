@@ -208,11 +208,7 @@ router.post('/edit', adminAuthMiddleware('edit a user'), async (req, res) => {
 			return res.sendStatus(200);
 
 		} catch (error) {
-<<<<<<< HEAD
-			
-=======
 			// Log internally and send a generic error response.
->>>>>>> d7c4769f9 (fix: add global error handling and disable verbose error output)
 			log.error('Error while performing edit user request.', error);
 			res.status(500).json({ message: 'Internal Server Error' });
 		}
