@@ -61,12 +61,26 @@ router.post('/', credentialsRequestValidationMiddleware, async (req, res) => {
 			}
 			if (isValid) {
 				const token = jwt.sign({ data: user.id }, secretToken, { expiresIn: 86400 });
+
+
 				classLogger.info({
-					event: "auth.login.success",
-					message: "successful login",
-					statusCode: "200"
-				});
-				res.json({ token: token, username: user.username, role: user.role });
+            event: "auth.login.success",
+            message: "successful login",
+            statusCode: "200"
+        });
+
+        res.cookie('oedSession', token, {
+           httpOnly: true,
+           secure: true,
+           sameSite: 'Lax'
+        });
+
+        res.json({
+            username: user.username,
+            role: user.role
+        });
+
+
 			} else {
 				throw new Error('Unauthorized password');
 			}
