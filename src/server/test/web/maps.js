@@ -75,14 +75,16 @@ mocha.describe('maps API', () => {
 		expectMapsToBeEquivalent(res.body, 3);
 	});
 	mocha.describe('Admin role:', () => {
-		let token;
-		// Since this .before is in the middle of tests, it should not have issues as
-		// documented in usersTest.js.
-		mocha.before(async () => {
-			let res = await chai.request(app).post('/api/login')
-				.send({ username: testUser.username, password: testUser.password });
-			token = res.body.token;
-		});
+		let agent;
+
+    	// Since this .before is in the middle of tests, it should not have issues as
+    	// documented in usersTest.js. Authentication is now session-based using cookies.
+    	mocha.before(async () => {
+        	agent = chai.request.agent(app);
+        	await agent.post('/api/login')
+            .send({ username: testUser.username, password: testUser.password });
+    	});
+
 		mocha.it('returns all maps', async () => {
 			const conn = testDB.getConnection();
 			await new Map(undefined, 'Map 1', true, null, 'default', moment('2000-10-10'), origin, opposite, 'placeholder', 1.0, 0.1).insert(conn);
@@ -91,7 +93,7 @@ mocha.describe('maps API', () => {
 			// Not visible.
 			await new Map(undefined, 'Not Visible', false, null, 'default', moment('2000-10-10'), origin, opposite, 'placeholder', 4.0, 0.4).insert(conn);
 
-			const res = await chai.request(app).get('/api/maps').set('token', token);
+			const res = await agent.get('/api/maps');
 			expect(res).to.have.status(200);
 			expect(res).to.be.json;
 			expect(res.body).to.have.lengthOf(4);
@@ -103,7 +105,7 @@ mocha.describe('maps API', () => {
 	mocha.describe('Non-Admin role:', () => {
 		for (const role in User.role) {
 			if (User.role[role] !== User.role.ADMIN) {
-				let token;
+				let agent;
 				mocha.beforeEach(async () => {
 					// insert test user
 					const conn = testDB.getConnection();
@@ -114,23 +116,25 @@ mocha.describe('maps API', () => {
 					unauthorizedUser.password = password;
 
 					// login
-					let res = await chai.request(app).post('/api/login')
-						.send({ username: unauthorizedUser.username, password: unauthorizedUser.password });
-					token = res.body.token;
+					
+					agent = chai.request.agent(app);
+					await agent.post('/api/login')
+  					.send({ username: unauthorizedUser.username, password });
+
 				});
 				mocha.it(`should reject requests from ${role} to create maps`, async () => {
 					// get maps
-					let res = await chai.request(app).post('/api/maps/create').set('token', token);
+					let res = await agent.post('/api/maps/create');
 					expect(res).to.have.status(403);
 				});
 
 				mocha.it(`should reject requests from ${role} to edit maps`, async () => {
-					let res = await chai.request(app).post('/api/maps/edit').set('token', token);
+					let res = await agent.post('/api/maps/edit');
 					expect(res).to.have.status(403);
 				});
 
 				mocha.it(`should reject requests from ${role} to delete maps`, async () => {
-					let res = await chai.request(app).post('/api/maps/delete').set('token', token);
+					let res = await agent.post('/api/maps/delete');
 					expect(res).to.have.status(403);
 				});
 				mocha.it(`should only show visible maps to ${role}`, async () => {
@@ -145,7 +149,7 @@ mocha.describe('maps API', () => {
 					const hashedPassword = await bcrypt.hash(password, 10);
 
 					// get maps
-					let res = await chai.request(app).get('/api/maps').set('token', token);
+					let res = await agent.get('/api/maps')
 					expect(res).to.have.status(200);
 					expect(res).to.be.json;
 					expect(res.body).to.have.lengthOf(3);

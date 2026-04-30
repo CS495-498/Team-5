@@ -140,14 +140,16 @@ mocha.describe('meters API', () => {
 	mocha.describe('Admin role & CSV role:', () => {
 		for (const role in User.role) {
 			if (User.role[role] !== User.role.OBVIUS && User.role[role] !== User.role.EXPORT) {
-				let token;
+				
+				let agent;
 				// Since this .before is in the middle of tests, it should not have issues as
-				// documented in usersTest.js.
+				// documented in usersTest.js. Authentication is now session-based using cookies.
 				mocha.before(async () => {
-					let res = await chai.request(app).post('/api/login')
-						.send({ username: testUser.username, password: testUser.password });
-					token = res.body.token;
-				});
+    				agent = chai.request.agent(app);
+    				await agent.post('/api/login')
+        				.send({ username: testUser.username, password: testUser.password });
+});
+
 				mocha.it('returns all meters', async () => {
 					const conn = testDB.getConnection();
 					await new Meter(undefined, 'Meter 1', '1.1.1.1', true, true, Meter.type.MAMAC, '+01', gps,
@@ -167,7 +169,7 @@ mocha.describe('meters API', () => {
 						4.0, '0001-01-01 23:59:59', '2020-07-02 01:00:10', '2020-03-05 13:15:13', unitId, unitId,
 						Unit.areaUnitType.METERS, '13:57:19').insert(conn);
 
-					const res = await chai.request(app).get('/api/meters').set('token', token);
+					const res = await agent.get('/api/meters');
 					expect(res).to.have.status(200);
 					expect(res).to.be.json;
 					expect(res.body).to.have.lengthOf(4);
@@ -180,8 +182,8 @@ mocha.describe('meters API', () => {
 	mocha.describe('Export role & Obvius role:', () => {
 		for (const role in User.role) {
 			if (User.role[role] !== User.role.ADMIN && User.role[role] !== User.role.CSV) {
-				let token;
-				mocha.beforeEach(async () => {
+					let agent;
+					mocha.beforeEach(async () => {
 					// insert test user
 					const conn = testDB.getConnection();
 					const password = 'password';
@@ -191,9 +193,10 @@ mocha.describe('meters API', () => {
 					unauthorizedUser.password = password;
 
 					// login
-					let res = await chai.request(app).post('/api/login')
-						.send({ username: unauthorizedUser.username, password: unauthorizedUser.password });
-					token = res.body.token;
+					
+					agent = chai.request.agent(app);
+   					await agent.post('/api/login')
+        				.send({ username: unauthorizedUser.username, password });
 				});
 
 				mocha.it('should only return visible data', async () => {
@@ -215,7 +218,7 @@ mocha.describe('meters API', () => {
 						4.0, '0001-01-01 23:59:59', '2020-07-02 01:00:10', '2020-03-05 13:15:13', unitId, unitId,
 						Unit.areaUnitType.METERS, '13:57:19').insert(conn);
 
-					const res = await chai.request(app).get('/api/meters').set('token', token);
+					const res = await agent.get('/api/meters');
 					expect(res).to.have.status(200);
 					expect(res).to.be.json;
 					expect(res.body).to.have.lengthOf(4);
@@ -223,7 +226,7 @@ mocha.describe('meters API', () => {
 				});
 
 				mocha.it(`should reject requests from ${role} to edit meters`, async () => {
-					let res = await chai.request(app).post('/api/meters/edit').set('token', token);
+					let res = await agent.post('/api/meters/edit');
 					expect(res).to.have.status(403);
 				});
 			}
