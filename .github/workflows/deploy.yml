@@ -1,0 +1,34 @@
+name: deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [dev, prod]
+    types: [completed]
+
+jobs:
+  deploy-dev:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'dev'
+    runs-on: [self-hosted, Linux, X64, dev-05]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: "Run reload script (dev)"
+        shell: bash
+        run: /home/geonor/oed
+
+  deploy-prod:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'prod'
+    runs-on: [self-hosted, Linux, X64, prod-05]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: "Run reload script (prod)"
+        shell: bash
+        run: /home/geonor/oed

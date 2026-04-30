@@ -12,7 +12,8 @@ const bodyParser = require('body-parser');
 const config = require('./config');
 
 const { log, LogLevel } = require('./log');
-
+const classLogger = require('../../logger');
+const { v4: uuidv4 } = require('uuid');
 const users = require('./routes/users');
 const readings = require('./routes/readings');
 const meters = require('./routes/meters');
@@ -77,8 +78,16 @@ const generalLimiter = rateLimit({
 		return string
 	}
 });
+
+const app = express();
+
+app.use((req, res, next) => {
+	req.requestId = uuidv4();
+	res.setHeader('X-Request-ID', req.requestId);
+	next();
+});
 // Apply the limit to overall requests
-const app = express().use(generalLimiter);
+app.use(generalLimiter);
 
 // This is limiting 3D-Graphic
 const threeDLimiter = rateLimit({
@@ -112,7 +121,16 @@ const loginLimiter = rateLimit({
 	windowMs: 4 * 1000, // 4 seconds
 	limit: 1, // 1 requests
 	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-	legacyHeaders: false // Disable the `X-RateLimit-*` headers
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+	handler: (req, res) =>{
+		classLogger.warn(
+			`auth.login.rate_limit | requestId=${req.requestId} route=${req.originalUrl} statusCode=429 username=${req.body?.username || "unknown"} ip=${req.ip}`
+		  );
+		res.status(429).json({
+			error: `Too many login attempts. Please try again later.`
+		});
+
+	}
 });
 // Apply the login limit
 app.use('/api/login', loginLimiter);
@@ -128,6 +146,7 @@ app.use(favicon(path.join(__dirname, '..', 'client', 'public', 'favicon.ico')));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
 
+app.use('/api/login', login);
 app.use('/api/users', users);
 app.use('/api/meters', meters);
 app.use('/api/readings', readings);
@@ -153,6 +172,11 @@ const router = express.Router();
 // Accept all other endpoint requests which will be handled by the client router
 router.get('*', (req, res) => {
 	fs.readFile(path.resolve(__dirname, '..', 'client', 'index.html'), (err, html) => {
+		if (err) {
+			log.error('Failed to read index.html for client router; logging caught err object.', err);
+			return res.status(500).send('Internal Server Error. Details are in the OED logs that are available to your site admin(s).');
+		}
+
 		const subdir = config.subdir || '/';
 		let htmlPlusData = html.toString().replace('SUBDIR', subdir);
 		res.send(htmlPlusData);
@@ -163,6 +187,25 @@ app.use(router);
 
 app.use((req, res) => {
 	res.status(404).send('<h1>404 Not Found</h1>');
+});
+
+// Global error handler, errors will still be logged internally but keep client response generic
+app.use((err, req, res, next) => {
+	// Malformed JSON needs to return bad request for tests to pass
+	// err instanceof SyntaxError: body-parser throws SyntaxError when JSON cannot be parsed
+	// err.status === 400: confirms this parse failure maps to HTTP 400 Bad Request
+	// 'body' in err: indicates the error came from request body parsing and not an unrelated SyntaxError
+	if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+		return res.status(400).send('Bad Request');
+	}
+
+	log.error('Unhandled request error caught by global error handler; logging forwarded err object.', err);
+	// If response headers are already sent, Express cannot safely change the response
+	// Forward to the default Express handler to finish error
+	if (res.headersSent) {
+		return next(err);
+	}
+	res.status(500).json({ message: 'Internal Server Error' });
 });
 
 module.exports = app;

@@ -138,7 +138,7 @@ router.get('/deep/groups/:group_id', optionalAuthMiddleware, async (req, res) =>
 			res.json({ deepGroups });
 		} catch (err) {
 			log.error(`Error while preforming GET on all deep child groups of specific group: ${err}`, err);
-			res.sendStatus(500);
+			res.sendStatus(400);
 		}
 	}
 });
@@ -166,7 +166,7 @@ router.get('/deep/meters/:group_id', optionalAuthMiddleware, async (req, res) =>
 			res.json({ deepMeters });
 		} catch (err) {
 			log.error(`Error while preforming GET on all deep child meters of specific group: ${err}`, err);
-			res.sendStatus(500);
+			res.sendStatus(400);
 		}
 	}
 });
@@ -194,7 +194,7 @@ router.get('/parents/:group_id', optionalAuthMiddleware, async (req, res) => {
 			res.json(parentGroups);
 		} catch (err) {
 			log.error(`Error while preforming GET on all parents of specific group: ${err}`, err);
-			res.sendStatus(500);
+			res.sendStatus(400);
 		}
 	}
 });
@@ -283,11 +283,12 @@ router.post('/create', adminAuthMiddleware('create groups'), async (req, res) =>
 			});
 			success(res);
 		} catch (err) {
+			// Group duplicate-name DB errors to a safe 400 response
 			if (err.toString() === 'error: duplicate key value violates unique constraint "groups_name_key"') {
-				failure(res, 400, err.toString() + ' with detail ' + err['detail']);
+				failure(res, 400, 'Group name already exists');
 			} else {
 				log.error(`Error while inserting new group ${err}`, err);
-				failure(res, 500, err.toString() + ' with detail ' + err['detail']);
+				failure(res, 400, err.toString() + ' with detail ' + err['detail']);
 			}
 		}
 	}
@@ -397,7 +398,7 @@ router.put('/edit', adminAuthMiddleware('edit groups'), async (req, res) => {
 				res.status(400).send({ message: err.message });
 			} else {
 				log.error(`Error while editing existing group ${err}`, err);
-				res.sendStatus(500);
+				res.sendStatus(400);
 			}
 		}
 	}
@@ -424,7 +425,7 @@ router.post('/delete', adminAuthMiddleware('delete groups'), async (req, res) =>
 			res.sendStatus(200);
 		} catch (err) {
 			log.error(`Error while deleting group ${err}`, err);
-			res.sendStatus(500);
+			res.sendStatus(400);
 		}
 	}
 });

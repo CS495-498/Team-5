@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const secretToken = require('../config').secretToken;
 const User = require('../models/User');
+const classLogger = require('../../../logger');
 const { log } = require('../log');
 const validate = require('jsonschema').validate;
 const { isTokenAuthorized, isUserAuthorized } = require('../util/userRoles');
@@ -23,10 +24,16 @@ authMiddleware = (req, res, next) => {
 		type: 'string'
 	};
 	if (!validate(token, validParams).valid) {
+		classLogger.warn(
+			`auth.token.missing | requestId=${req.requestId} route=${req.originalUrl} statusCode=403 ip=${req.ip}`
+		  );
 		res.status(403).json({ success: false, message: 'No token provided or JSON was invalid.' });
 	} else if (token) {
 		jwt.verify(token, secretToken, async (err, decoded) => {
 			if (err) {
+				classLogger.warn(
+					`auth.token.invalid | requestId=${req.requestId} route=${req.originalUrl} statusCode=401 ip=${req.ip}`
+				  );
 				res.status(401).json({ success: false, message: 'Failed to authenticate token.' });
 			} else {
 				try {
@@ -40,6 +47,9 @@ authMiddleware = (req, res, next) => {
 			}
 		});
 	} else {
+		classLogger.warn(
+			`auth.token.missing | requestId=${req.requestId} route=${req.originalUrl} statusCode=403 ip=${req.ip}`
+		  );
 		res.status(403).send({ success: false, message: 'No token provided.' });
 	}
 };
@@ -166,7 +176,7 @@ function obviusUsernameAndPasswordAuthMiddleware(action) {
 					res.status(400).send(`No user corresponding to the username: ${escapeHtml(req.body.username)} was found. Please make a request with a valid username.`);
 				} else {
 					log.error('Internal Server Error for Obvius request.', error);
-					res.status(500).send('Internal OED Server Error for Obvius request.');
+					res.status(400).send('Internal OED Server Error for Obvius request.');
 				}
 			}
 		});
