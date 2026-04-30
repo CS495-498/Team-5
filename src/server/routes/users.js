@@ -11,6 +11,7 @@ const validate = require('jsonschema').validate;
 const { getConnection } = require('../db');
 const jwt = require('jsonwebtoken');
 const secretToken = require('../config').secretToken;
+const { validatePasswordPolicy } = require('../util/validatePassword');
 
 const router = express.Router();
 
@@ -111,6 +112,21 @@ router.post('/create', adminAuthMiddleware('create a user.'), async (req, res) =
 	} else {
 		try {
 			const { username, password, role, note } = req.body;
+			
+			/* Determine the password’s size in bytes (using UTF-8 encoding) since some characters
+			take more than one byte, then reject the request if it exceeds 72 bytes to prevent
+			bcrypt from silently truncating the password before hashing */
+			const byteLength = Buffer.byteLength(password, 'utf8');
+			if (byteLength > 72) {
+				return res.status(400).send({ message: 'Password must not exceed 72 bytes.' });
+							}
+			
+			// Password policy validation
+			const errorMessage = validatePasswordPolicy(password, username, role);
+			if (errorMessage) {
+				return res.status(400).send({ message: errorMessage });
+			}
+
 			const conn = getConnection();
 			// Check if user already exists
 			const currentUser = await User.getByUsername(username, conn);
@@ -194,9 +210,30 @@ router.post('/edit', adminAuthMiddleware('edit a user'), async (req, res) => {
 				User.updateUser(user.id, user.username, user.role, user.note, conn)
 			);
 			
-			
+		
 			// update the user's password if needed
 			if (user.password) {
+				    //Enforce bcrypt 72-byte limit
+    const byteLength = Buffer.byteLength(user.password, 'utf8');
+    if (byteLength > 72) {
+        return res.status(400).json({
+            message: 'Password must not exceed 72 bytes.'
+        });
+    }
+
+    //Password policy validation
+    const errorMessage = validatePasswordPolicy(
+        user.password,
+        user.username,
+        user.role
+    );
+
+    if (errorMessage) {
+        return res.status(400).json({
+            message: errorMessage
+        });
+    }
+
 				const hashedPassword = await bcrypt.hash(user.password, 10);
 				userUpdates.push(
 					User.updateUserPassword(user.id, hashedPassword, conn)
