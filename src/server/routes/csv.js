@@ -20,10 +20,13 @@ const multer = require('multer');
 const saveCsv = require('../services/csvPipeline/saveCsv');
 const uploadMeters = require('../services/csvPipeline/uploadMeters');
 const uploadReadings = require('../services/csvPipeline/uploadReadings');
-const zlib = require('zlib');
 const { refreshAllReadingViews } = require('../services/refreshAllReadingViews');
 const { success, failure } = require('../services/csvPipeline/success');
-const { sanitizeForLog } = require('../util/sanitizeForLog');
+const path = require("path");
+const gunzipToFileWithLimit = require("../util/gunzipToFileWithLimit");
+
+const MAX_COMPRESSED_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB max upload
+const MAX_DECOMPRESSED_BYTES = 50 * 1024 * 1024;      // 50 MB max after gunzip
 
 /** Middleware validation */
 const { normalizeBoolean, validateMetersCsvUploadParams, validateReadingsCsvUploadParams } = require('../services/csvPipeline/validateCsvUploadParams');
@@ -51,6 +54,10 @@ router.use(function (req, res, next) {
 	// Multer Config
 	let upload = multer({
 		storage: storage,
+		limits: {
+			fileSize: MAX_COMPRESSED_UPLOAD_BYTES,
+			files: 1
+		},
 		// We will use this filter to handle user authentication. If the user is doing a curl request
 		// we need the supplied password param to precede the file when uploading so that
 		// multer will have stored 'password' in req.body by the time this filter is called on a file.
@@ -63,7 +70,7 @@ router.use(function (req, res, next) {
 				const token = request.headers.token || request.body.token || request.query.token;
 				if (token) {
 					// If a token is found, then we will check authentication and validation via the token.
-					(await isTokenAuthorized(token, csvRole)) ? cb(null, true) : cb(new Error('Invalid token (either unauthorized or logged out'));
+					(await isTokenAuthorized(token, csvRole)) ? cb(null, true) : cb(new Error('Invalid token (either unauthorized or logged out)'));
 				} else {
 					// If no token is found, then the request is mostly like a curl request. We require an
 					// username and password to be supplied for curl requests.
@@ -114,14 +121,20 @@ router.post('/meters', validateMetersCsvUploadParams, async (req, res) => {
 	let csvFilepath;
 	try {
 		log.info(`The file ${uploadedFilepath} was created to upload meters csv data`);
-		let fileBuffer = await fs.readFile(uploadedFilepath);
+		const dir = `${__dirname}/../tmp/uploads/csvPipeline`;
 		// Unzip uploaded file and save file to disk if the user 
 		// has indicated that the file is (g)zipped.
 		if (isGzip) {
-			fileBuffer = zlib.gunzipSync(fileBuffer);
+			const outName = 
+				`meters-${moment().format('YYYY-MM-DD_HH:mm:ss.SSS')}-${crypto.randomBytes(2).toString('hex')}.csv`;
 			// We expect this directory to have been created by this stage of the pipeline.
-			const dir = `${__dirname}/../tmp/uploads/csvPipeline`;
-			csvFilepath = await saveCsv(fileBuffer, 'meters', dir);
+			
+			csvFilepath = await gunzipToFileWithLimit(
+				uploadedFilepath,
+				dir,
+				outName,
+				MAX_DECOMPRESSED_BYTES
+			);
 			log.info(`The unzipped file ${csvFilepath} was created to upload meters csv data`);
 		} else {
 			csvFilepath = uploadedFilepath;
@@ -142,7 +155,7 @@ router.post('/meters', validateMetersCsvUploadParams, async (req, res) => {
 			});
 
 		// If user has indicated that the file is (g)zipped, then we also have to remove the unzipped file.
-		if (isGzip) {
+		if (isGzip && csvFilepath && csvFilepath !== uploadedFilepath) {
 			// Delete the unzipped csv file if it exists.
 			fs.unlink(csvFilepath)
 				.then(() => log.info(`Successfully deleted the unzipped csv file ${csvFilepath}.`))
@@ -157,22 +170,27 @@ router.post('/readings', validateReadingsCsvUploadParams, async (req, res) => {
 	const isGzip = normalizeBoolean(req.body.gzip);
 	const isRefreshReadings = normalizeBoolean(req.body.refreshReadings);
 	const uploadedFilepath = req.file.path;
-	const safeUploadedFilepath = sanitizeForLog(uploadedFilepath);
 	let csvFilepath;
 	let isAllReadingsOk;
 	let msgTotal;
 	try {
-		log.info(`The uploaded file ${safeUploadedFilepath} was created to upload readings csv data`);
-		let fileBuffer = await fs.readFile(uploadedFilepath);
+		log.info(`The uploaded file ${uploadedFilepath} was created to upload readings csv data`);
+		const dir = `${__dirname}/../tmp/uploads/csvPipeline`;
 		// Unzip uploaded file and save file to disk if the user 
 		// has indicated that the file is (g)zipped.
 		if (isGzip) {
-			fileBuffer = zlib.gunzipSync(fileBuffer);
+			const outName = 
+				`meters-${moment().format('YYYY-MM-DD_HH:mm:ss.SSS')}-${crypto.randomBytes(2).toString('hex')}.csv`;
+			
 			// We expect this directory to have been created by this stage of the pipeline.
-			const dir = `${__dirname}/../tmp/uploads/csvPipeline`;
-			csvFilepath = await saveCsv(fileBuffer, 'readings', dir);
-			const safeCsvFilepath = sanitizeForLog(csvFilepath);
-			log.info(`The unzipped file ${safeCsvFilepath} was created to upload readings csv data`);
+			
+			csvFilepath = await gunzipToFileWithLimit(
+				uploadedFilepath,
+				dir,
+				outName,
+				MAX_DECOMPRESSED_BYTES
+			);
+			log.info(`The unzipped file ${csvFilepath} was created to upload readings csv data`);
 		} else {
 			csvFilepath = uploadedFilepath;
 		}
@@ -188,19 +206,18 @@ router.post('/readings', validateReadingsCsvUploadParams, async (req, res) => {
 	} finally {
 		// Clean up files
 		fs.unlink(uploadedFilepath) // Delete the uploaded file.
-			.then(() => log.info(`Successfully deleted the uploaded file ${safeUploadedFilepath}.`))
+			.then(() => log.info(`Successfully deleted the uploaded file ${uploadedFilepath}.`))
 			.catch(err => {
-				log.error(`Failed to remove the file ${safeUploadedFilepath}.`, err);
+				log.error(`Failed to remove the file ${uploadedFilepath}.`, err);
 			});
 
 		// If user has indicated that the file is (g)zipped, then we also have to remove the unzipped file.
-		if (isGzip) {
-			const safeCsvFilepath = sanitizeForLog(csvFilepath);
+		if (isGzip && csvFilepath && csvFilepath !== uploadedFilepath) {
 			// Delete the unzipped csv file if it exists.
 			fs.unlink(csvFilepath)
-				.then(() => log.info(`Successfully deleted the unzipped csv file ${safeCsvFilepath}.`))
+				.then(() => log.info(`Successfully deleted the unzipped csv file ${csvFilepath}.`))
 				.catch(err => {
-					log.error(`Failed to remove the file ${safeCsvFilepath}.`, err);
+					log.error(`Failed to remove the file ${csvFilepath}.`, err);
 				});
 		}
 	}
