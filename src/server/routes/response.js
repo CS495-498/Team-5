@@ -25,8 +25,11 @@ function success(res, comment = '') {
  * @param {string} comment Any additional data to be returned to the client as a string.
  */
 function failure(res, code = 500, comment = '') {
-	const safeComment = DOMPurify.sanitize(comment);
-	res.status(code).send(safeComment);
+	// Return a generic message for 500-level failures.
+	const responseBody = code >= 500 ? 'Internal Server Error. Details are in the OED logs that are available to your site admin(s).' : comment;
+	res.status(code)
+	.send(responseBody);
+
 }
 
 module.exports = { success, failure };

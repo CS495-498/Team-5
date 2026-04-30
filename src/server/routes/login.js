@@ -81,7 +81,7 @@ router.post('/', credentialsRequestValidationMiddleware, async (req, res) => {
 					`auth.login.error | requestId=${req.requestId} route=${req.originalUrl} statusCode=500 username=${req.body?.username || "unknown"} ip=${req.ip}`
 				  );
 				log.error(`Unable to check user password for ${req.body.username}`, err);
-				res.status(500).send({ text: 'Internal Server Error' });
+				res.status(408).send({ text: 'Internal Server Error' });
 			}
 		}
 	}
