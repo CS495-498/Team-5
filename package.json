@@ -17,7 +17,7 @@
 		"check:types": "tsc -p . --noEmit",
 		"check:lint": "eslint --ignore-path .eslintignore --ext .ts,.tsx,.js,.jsx ./src/client/app",
 		"test": "mocha --timeout 15000 \"src/server/test/**/*.js\"",
-		"testsome": "mocha --timeout 15000",
+		"testsome": "mocha --timeout 15000 --exit",
 		"createdb": "node ./src/server/services/createDB.js",
 		"developerdb": "node -e 'require(\"./src/server/util/developer.js\").createShiftReadingsFunction()'",
 		"migratedb": "node ./src/server/services/migrateDB.js",
@@ -45,7 +45,8 @@
 		"generateTestingData": "node -e 'require(\"./src/server/data/automatedTestingData\").generateTestingData()'",
 		"testData": "node -e 'require(\"./src/server/data/automatedTestingData.js\").insertSpecialUnitsConversionsMetersGroups()'",
 		"webData": "node -e 'require(\"./src/server/data/websiteData.js\").insertWebsiteData()'",
-		"addLogMsg": "node -e 'require(\"./src/server/services/addLogMsg.js\").addLogMsgToDB()'"
+		"addLogMsg": "node -e 'require(\"./src/server/services/addLogMsg.js\").addLogMsgToDB()'",
+		"changePostgresPassword": "node ./src/server/util/changePostgresPass.js"
 	},
 	"nodemonConfig": {
 		"watch": [
@@ -105,6 +106,8 @@
 		"redux-thunk": "~2.4.0",
 		"serve-favicon": "~2.5.0",
 		"usehooks-ts": "~3.1.0",
+		"winston": "~3.19.0",
+		"winston-loki": "~6.1.4",
 		"xml2js": "~0.5.0",
 		"zxcvbn": "~4.4.2"
 	},

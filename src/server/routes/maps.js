@@ -70,7 +70,7 @@ router.get('/:map_id', optionalAuthMiddleware, async (req, res) => {
 			res.json(formatMapForResponse(map));
 		} catch (err) {
 			log.error(`Error while performing GET specific map by id query: ${err}`, err);
-			res.sendStatus(500);
+			res.sendStatus(408);
 		}
 	}
 });
@@ -168,7 +168,7 @@ router.post('/create', adminAuthMiddleware('create maps'), async (req, res) => {
 				res.status(400).json({ error: `Map "${req.body.name}" is already in use.` });
 			} else {
 				log.error(`Error while inserting new map ${err}`, err);
-				res.sendStatus(500);
+				res.sendStatus(400);
 			}
 		}
 	}
@@ -271,7 +271,7 @@ router.post('/edit', adminAuthMiddleware('edit maps'), async (req, res) => {
 				log.error(`Map "${req.body.name}" is already in use.`);
 			} else {
 				log.error(`Error while updating map ${err}`, err);
-				res.sendStatus(500);
+				res.sendStatus(400);
 			}
 		}
 	}
@@ -295,7 +295,7 @@ router.post('/delete', adminAuthMiddleware('delete maps'), async (req, res) => {
 			res.sendStatus(200);
 		} catch (err) {
 			log.error(`Error while deleting group ${err}`, err);
-			res.sendStatus(500);
+			res.sendStatus(400);
 		}
 	}
 });

@@ -118,7 +118,7 @@ router.post('/edit', adminAuthMiddleware('edit units'), async (req, res) => {
 			success(res, 'Successfully edited unit');
 		} catch (err) {
 			log.error(`Failed to update unit: ${err}`, err);
-			failure(res, 500, 'Unable to update unit');
+			failure(res, 400, 'Unable to update unit');
 		}
 	}
 });
@@ -239,7 +239,7 @@ router.post('/delete', adminAuthMiddleware('delete units'), async (req, res) => 
 		} catch (err) {
 			const errorMsg = `Error while deleting unit with error(s): ${err}`;
 			log.error(errorMsg);
-			failure(res, 500, errorMsg);
+			failure(res, 400, errorMsg);
 		}
 	}
 });

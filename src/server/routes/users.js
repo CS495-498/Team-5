@@ -268,11 +268,9 @@ router.post("/edit", adminAuthMiddleware("edit a user"), async (req, res) => {
 			await Promise.all(userUpdates);
 			return res.sendStatus(200);
 		} catch (error) {
-			log.error("Error while performing edit user request.", error);
-			res.status(500).json({
-				message: "Error while performing edit user request.",
-				error: error.message,
-			});
+			// Log internally and send a generic error response.
+			log.error('Error while performing edit user request.', error);
+			res.status(500).json({ message: 'Internal Server Error' });
 		}
 	}
 });

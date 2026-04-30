@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const secretToken = require('../config').secretToken;
 const validate = require('jsonschema').validate;
+const classLogger = require('../../../logger');
 const { log } = require('../log');
 const { getConnection } = require('../db');
 const { credentialsRequestValidationMiddleware } = require('./authenticator');
@@ -39,6 +40,9 @@ router.post('/', credentialsRequestValidationMiddleware, async (req, res) => {
 	};
 
 	if (!validate(req.body, validParams).valid) {
+		classLogger.warn(
+			`auth.login.validation_failed | requestId=${req.requestId} route=${req.originalUrl} statusCode=400 username=${req.body?.username || "unknown"} ip=${req.ip}`
+		  );
 		res.sendStatus(400);
 	} else {
 		const conn = getConnection();
@@ -49,21 +53,35 @@ router.post('/', credentialsRequestValidationMiddleware, async (req, res) => {
 				// User did not exist so return false.
 				await bcrypt.compare(req.body.password, user.passwordHash);
 				isValid = false;
+				classLogger.warn(
+					`auth.login.user_not_found | requestId=${req.requestId} route=${req.originalUrl} statusCode=401 username=${req.body?.username || "unknown"} ip=${req.ip}`
+				  );
 			} else {
 				isValid = await bcrypt.compare(req.body.password, user.passwordHash);
 			}
 			if (isValid) {
 				const token = jwt.sign({ data: user.id }, secretToken, { expiresIn: 86400 });
+				classLogger.info({
+					event: "auth.login.success",
+					message: "successful login",
+					statusCode: "200"
+				});
 				res.json({ token: token, username: user.username, role: user.role });
 			} else {
 				throw new Error('Unauthorized password');
 			}
 		} catch (err) {
 			if (err.message === 'Unauthorized password' || err.message === 'No data returned from the query.') {
+				classLogger.warn(
+					`auth.login.failed | requestId=${req.requestId} route=${req.originalUrl} statusCode=401 username=${req.body?.username || "unknown"} ip=${req.ip}`
+				  );
 				res.status(401).send({ text: 'Not authorized' });
 			} else {
+				classLogger.error(
+					`auth.login.error | requestId=${req.requestId} route=${req.originalUrl} statusCode=500 username=${req.body?.username || "unknown"} ip=${req.ip}`
+				  );
 				log.error(`Unable to check user password for ${req.body.username}`, err);
-				res.status(500).send({ text: 'Internal Server Error' });
+				res.status(408).send({ text: 'Internal Server Error' });
 			}
 		}
 	}
