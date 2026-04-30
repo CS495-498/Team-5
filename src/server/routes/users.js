@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 const bcrypt = require('bcryptjs');
-const { adminAuthMiddleware, optionalAuthMiddleware } = require('./authenticator');
+const {adminAuthMiddleware, optionalAuthMiddleware,} = require('./authenticator');
 const express = require('express');
 const User = require('../models/User');
 const { log } = require('../log');
@@ -11,6 +11,7 @@ const validate = require('jsonschema').validate;
 const { getConnection } = require('../db');
 const jwt = require('jsonwebtoken');
 const secretToken = require('../config').secretToken;
+const { validatePasswordPolicy } = require('../util/validatePassword');
 
 const router = express.Router();
 
@@ -31,7 +32,7 @@ router.get('/', adminAuthMiddleware('get all users'), async (req, res) => {
 router.get('/token', optionalAuthMiddleware, async (req, res) => {
 	const token = req.headers.token || req.body.token || req.query.token;
 	const validParams = {
-		type: 'string'
+		type: 'string',
 	};
 	if (!validate(token, validParams).valid) {
 		res.status(403).json({ message: 'No token provided or JSON was invalid.' });
@@ -43,11 +44,10 @@ router.get('/token', optionalAuthMiddleware, async (req, res) => {
 				try {
 					const conn = getConnection();
 					const userProfile = await User.getByID(decoded.data, conn);
-					res.status(200).json(
-						{
-							username: userProfile.username,
-							role: userProfile.role
-						});
+					res.status(200).json({
+						username: userProfile.username,
+						role: userProfile.role,
+					});
 				} catch (error) {
 					res.status(401).json({ message: 'User does not exist in database.' });
 				}
@@ -59,80 +59,122 @@ router.get('/token', optionalAuthMiddleware, async (req, res) => {
 });
 
 // Route for fetching a user by ID.
-router.get('/:user_id', adminAuthMiddleware('get one user'), async (req, res) => {
-	const validParams = {
-		type: 'object',
-		maxProperties: 1,
-		required: ['user_id'],
-		properties: {
-			user_id: {
-				type: 'string',
-				pattern: '^\\d+$'
+
+router.get(
+	'/:user_id',
+	adminAuthMiddleware('get one user'),
+	async (req, res) => {
+		const validParams = {
+			type: 'object',
+			maxProperties: 1,
+			required: ['user_id'],
+			properties: {
+				user_id: {
+					type: 'string',
+					pattern: '^\\d+$',
+				},
+			},
+		};
+		if (!validate(req.params, validParams).valid) {
+			res.sendStatus(400);
+		} else {
+			const conn = getConnection();
+			try {
+				const rows = await User.getByID(req.params.user_id, conn);
+				res.json(rows);
+			} catch (err) {
+				log.error(
+					`Error while performing GET specific user by id query: ${err}`,
+					err
+				);
+				res.sendStatus(500);
 			}
 		}
-	};
-	if (!validate(req.params, validParams).valid) {
-		res.sendStatus(400);
-	} else {
-		const conn = getConnection();
-		try {
-			const rows = await User.getByID(req.params.user_id, conn);
-			res.json(rows);
-		} catch (err) {
-			log.error(`Error while performing GET specific user by id query: ${err}`, err);
-			res.sendStatus(500);
-		}
 	}
-});
+);
 
 // Route for creating a new user.
-router.post('/create', adminAuthMiddleware('create a user.'), async (req, res) => {
-	const validParams = {
-		type: 'object',
-		required: ['username', 'password', 'role', 'note'],
-		properties: {
-			username: {
-				type: 'string'
-			},
-			password: {
-				type: 'string'
-			},
-			role: {
-				type: 'string',
-				enum: Object.values(User.role)
-			},
-			note: {
-				type: 'string'
+	router.post(
+		'/create',
+		adminAuthMiddleware('create a user.'),
+		async (req, res) => {
+			const validParams = {
+				type: 'object',
+				required: ['username', 'password', 'role', 'note'],
+				properties: {
+					username: {
+						type: 'string',
+					},
+					password: {
+						type: 'string',
+					},
+					role: {
+						type: 'string',
+						enum: Object.values(User.role),
+					},
+					note: {
+						type: 'string',
+					},
+				},
+			};
+		if (!validate(req.body, validParams).valid) {
+			res.status(400).json({ message: 'Invalid params' });
+		} else {
+			try {
+				const { username, password, role, note } = req.body;
+
+				/* Determine the password’s size in bytes (using UTF-8 encoding) since some characters
+			take more than one byte, then reject the request if it exceeds 72 bytes to prevent
+			bcrypt from silently truncating the password before hashing */
+				const byteLength = Buffer.byteLength(password, 'utf8');
+				if (byteLength > 72) {
+					return res
+						.status(400)
+							.send({ message: 'Password must not exceed 72 bytes.' });
+				}
+
+				// Password policy validation
+				const errorMessage = validatePasswordPolicy(password, username, role);
+				if (errorMessage) {
+					return res.status(400).send({ message: errorMessage });
+				}
+
+				const conn = getConnection();
+				// Check if user already exists
+				const currentUser = await User.getByUsername(username, conn);
+				if (currentUser !== null) {
+					res
+						.status(400)
+						.send({
+							message: `user ${username} already exists so cannot create`,
+						});
+				} else {
+					const hashedPassword = await bcrypt.hash(password, 10);
+					const user = new User(
+						undefined,
+						username,
+						hashedPassword,
+						role,
+						note
+					);
+					await user.insert(conn);
+					res.sendStatus(200);
+				}
+			} catch (error) {
+				log.error(
+					`Error while performing POST request to create user: ${error}`,
+					error
+				);
+				res
+					.status(500)
+					.send({ message: 'Internal Server Error', error: error });
 			}
-		}
-	};
-	if (!validate(req.body, validParams).valid) {
-		res.status(400).json({ message: 'Invalid params' });
-	} else {
-		try {
-			const { username, password, role, note } = req.body;
-			const conn = getConnection();
-			// Check if user already exists
-			const currentUser = await User.getByUsername(username, conn);
-			if (currentUser !== null) {
-				res.status(400).send({ message: `user ${username} already exists so cannot create` });
-			} else {
-				const hashedPassword = await bcrypt.hash(password, 10);
-				const user = new User(undefined, username, hashedPassword, role, note);
-				await user.insert(conn);
-				res.sendStatus(200);
-			}
-		} catch (error) {
-			// Log the error internally and return a generic response
-			log.error(`Error while performing POST request to create user: ${error}`, error);
-			res.status(500).send({ message: 'Internal Server Error' });
 		}
 	}
-});
+);
 
 // Route for updating an existing user.
 router.post('/edit', adminAuthMiddleware('edit a user'), async (req, res) => {
-	
 	const validParams = {
 		type: 'object',
 		required: ['user'],
@@ -142,29 +184,28 @@ router.post('/edit', adminAuthMiddleware('edit a user'), async (req, res) => {
 				required: ['id', 'username', 'role', 'note'],
 				properties: {
 					id: {
-						type: 'integer'
+						type: 'integer',
 					},
 					username: {
 						type: 'string',
 						minLength: 3,
-						maxLength: 254
-							},
+						maxLength: 254,
+					},
 					role: {
 						type: 'string',
-						enum: Object.values(User.role)
+						enum: Object.values(User.role),
 					},
 					password: {
 						type: 'string',
 						// TODO Do not have minLength: 8 because this is optional. Nice if could check if present.
-						maxLength: 128
-		
+						maxLength: 128,
 					},
 					note: {
-						type: 'string'
-					}
-				}
-			}
-		}
+						type: 'string',
+					},
+				},
+			},
+		},
 	};
 
 	if (!validate(req.body, validParams).valid) {
@@ -173,13 +214,14 @@ router.post('/edit', adminAuthMiddleware('edit a user'), async (req, res) => {
 		try {
 			const conn = getConnection();
 			const { user } = req.body;
-			const userBeforeChanges = await User.getByID(user.id,conn);
-			
+			const userBeforeChanges = await User.getByID(user.id, conn);
+
 			// This protects the database so that there will always be at least one admin
 			if (userBeforeChanges.role === 'admin' && user.role !== 'admin') {
 				const numberOfAdmins = await User.getNumberOfAdmins(conn);
 				if (numberOfAdmins < 2) {
-					const errorMessage = 'There must be at least one admin remaining to avoid lockout!';
+					const errorMessage =
+						'There must be at least one admin remaining to avoid lockout!';
 					log.error(errorMessage);
 					return res.status(400).json({
 						message: errorMessage,
@@ -194,10 +236,30 @@ router.post('/edit', adminAuthMiddleware('edit a user'), async (req, res) => {
 			userUpdates.push(
 				User.updateUser(user.id, user.username, user.role, user.note, conn)
 			);
-			
-			
+
 			// update the user's password if needed
 			if (user.password) {
+				//Enforce bcrypt 72-byte limit
+				const byteLength = Buffer.byteLength(user.password, 'utf8');
+				if (byteLength > 72) {
+					return res.status(400).json({
+						message: 'Password must not exceed 72 bytes.',
+					});
+				}
+
+				//Password policy validation
+				const errorMessage = validatePasswordPolicy(
+					user.password,
+					user.username,
+					user.role
+				);
+
+				if (errorMessage) {
+					return res.status(400).json({
+						message: errorMessage,
+					});
+				}
+
 				const hashedPassword = await bcrypt.hash(user.password, 10);
 				userUpdates.push(
 					User.updateUserPassword(user.id, hashedPassword, conn)
@@ -206,7 +268,6 @@ router.post('/edit', adminAuthMiddleware('edit a user'), async (req, res) => {
 
 			await Promise.all(userUpdates);
 			return res.sendStatus(200);
-
 		} catch (error) {
 			// Log internally and send a generic error response.
 			log.error('Error while performing edit user request.', error);
@@ -216,35 +277,41 @@ router.post('/edit', adminAuthMiddleware('edit a user'), async (req, res) => {
 });
 
 // Route for deleting a user.
-router.post('/delete', adminAuthMiddleware('delete a user'), async (req, res) => {
-	const validParams = {
-		type: 'object',
-		required: ['username'],
-		properties: {
-			username: {
-				type: 'string'
+
+router.post(
+	'/delete',
+	adminAuthMiddleware('delete a user'),
+	async (req, res) => {
+			const validParams = {
+				type: 'object',
+				required: ['username'],
+				properties: {
+					username: {
+						type: 'string',
+					},
+				},
+			};
+		if (!validate(req.body, validParams).valid) {
+			res.status(400).json({ message: 'Invalid params!' });
+		} else {
+			try {
+				const conn = getConnection();
+				const { username } = req.body;
+				const id = req.decoded.data;
+				const user = await User.getByID(id, conn);
+				if (user.username === username) {
+					// Admins cannot delete themselves
+					res.sendStatus(400);
+				} else {
+					await User.deleteUser(username, conn);
+					res.sendStatus(200);
+				}
+			} catch (error) {
+				log.error('Error while performing delete user request', error);
+				res.sendStatus(500);
 			}
-		}
-	};
-	if (!validate(req.body, validParams).valid) {
-		res.status(400).json({ message: 'Invalid params!' });
-	} else {
-		try {
-			const conn = getConnection();
-			const { username } = req.body;
-			const id = req.decoded.data;
-			const user = await User.getByID(id, conn);
-			if (user.username === username) {// Admins cannot delete themselves
-				res.sendStatus(400);
-			} else {
-				await User.deleteUser(username, conn);
-				res.sendStatus(200);
-			}
-		} catch (error) {
-			log.error('Error while performing delete user request', error);
-			res.sendStatus(500);
 		}
 	}
-});
+);
 
 module.exports = router;
